@@ -4,4 +4,6 @@ public interface Component {
 	public void collect();
 	
 	public void process();
+	
+	public void render();
 }

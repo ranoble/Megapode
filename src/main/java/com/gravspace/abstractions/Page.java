@@ -6,6 +6,6 @@ import org.apache.http.protocol.HttpContext;
 
 public interface Page extends Component{
 	public void initialise(HttpRequest request,
-            HttpResponse response,
+			HttpResponse response,
             HttpContext context);
 }
