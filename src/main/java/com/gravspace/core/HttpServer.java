@@ -66,13 +66,18 @@ import org.apache.http.protocol.ResponseServer;
 import org.apache.http.protocol.UriHttpRequestHandlerMapper;
 import org.apache.http.util.EntityUtils;
 
+import com.gravspace.abstractions.PageHandler;
 import com.gravspace.messages.RequestMessage;
 import com.gravspace.messages.RequestPayload;
 
 import akka.actor.ActorRef;
 import akka.actor.ActorSystem;
+import akka.actor.Props;
 import akka.actor.TypedActor;
 import akka.actor.TypedProps;
+import akka.actor.UntypedActor;
+import akka.actor.UntypedActorFactory;
+import akka.japi.Creator;
 import akka.japi.Option;
 
 import javax.net.ssl.KeyManager;
@@ -86,15 +91,20 @@ import javax.net.ssl.SSLServerSocketFactory;
 public class HttpServer {
 
     public static void main(String[] args) throws Exception {
-        if (args.length < 1) {
-            System.err.println("Please specify document root directory");
-            System.exit(1);
-        }
-        // Document root directory
+       
         int port = 8080;
-        if (args.length >= 2) {
-            port = Integer.parseInt(args[1]);
+        if (args.length >= 1) {
+            port = Integer.parseInt(args[0]);
         }
+        
+        ActorSystem system = ActorSystem.create("Application System");
+        ActorRef master = system.actorOf(Props.create(CoordinatingActor.class));
+        
+        system.registerOnTermination(new Runnable(){
+                public void run() {
+//                        logger.info("System shutting down");
+                }
+        });
 
         // Set up the HTTP protocol processor
         HttpProcessor httpproc = HttpProcessorBuilder.create()
@@ -105,7 +115,7 @@ public class HttpServer {
 
         // Set up request handlers
         UriHttpRequestHandlerMapper reqistry = new UriHttpRequestHandlerMapper();
-        reqistry.register("*", new HttpHandler(null, null));
+        reqistry.register("*", new HttpHandler(system, master));
 
         // Set up the HTTP service
         HttpService httpService = new HttpService(httpproc, reqistry);
@@ -134,6 +144,8 @@ public class HttpServer {
         t.setDaemon(false);
         t.start();
     }
+    
+    
 
     static class HttpHandler implements HttpRequestHandler  {
 
@@ -164,7 +176,11 @@ public class HttpServer {
             }
 
             ITypedRequest requester =
-            		  TypedActor.get(system).typedActorOf(new TypedProps<TypedRequest>(TypedRequest.class));
+            		  TypedActor.get(system).typedActorOf(new TypedProps<TypedRequest>(TypedRequest.class,  new Creator<TypedRequest>(){
+            			  public TypedRequest create() {
+            				  return new TypedRequest(coordinator);
+            			  }
+            		  }), "entrypoint");
             Option<String> result = requester.process(request, response, context);
             response.setStatusCode(HttpStatus.SC_OK);
 
