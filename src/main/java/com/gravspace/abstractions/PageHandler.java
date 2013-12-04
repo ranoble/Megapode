@@ -15,31 +15,32 @@ import com.gravspace.messages.ResponseMessage;
 
 import akka.actor.ActorRef;
 import akka.actor.UntypedActor;
+import akka.actor.UntypedActorContext;
 import akka.dispatch.OnSuccess;
 import akka.pattern.Patterns;
 import akka.util.Timeout;
 
 public class PageHandler extends UntypedActor {
-	Map<String, Page> pages;
+	Map<String, Class<? extends Page>> pages;
 	Map<String, ActorRef> routes;
 	
-	public PageHandler(Map<String, Page> pages){
+	public PageHandler(Map<String, Class<? extends Page>> pages){
 		this.pages = pages;
+		
 	}
 
 	@Override
 	public void onReceive(Object rawMessage) throws Exception {
 		if (rawMessage instanceof RequestMessage){
 			RequestMessage message = (RequestMessage)rawMessage;
-			ActorRef page = routes.get(message.getRouteToken());
-//			Timeout timeout = new Timeout(Duration.create(1, "minute"));
-//			Future<Object> future = Patterns.ask(page, message.getPayload(), timeout);
-//			future.onSuccess(new OnSuccess<Object>() {
-//				@Override
-//				public void onSuccess(Object response) throws Throwable {
-//					PageHandler.this.getSender().tell(response, PageHandler.this.getSelf());
-//				}
-//			}, this.getContext().dispatcher());
+			//final ActorRef coordinatingActor, final UntypedActorContext actorContext
+			Page page = pages.get(message.getRouteToken()).getConstructor(ActorRef.class, UntypedActorContext.class).newInstance(this.getSelf(), this.context());
+			page.collect();
+			page.await();
+			page.process();
+			String rendered = page.render();
+			getSender().tell(rendered, getSelf());
+
 			
 		} 
 		else {

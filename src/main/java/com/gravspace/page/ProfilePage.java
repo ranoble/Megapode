@@ -13,7 +13,6 @@ public class ProfilePage extends PageBase {
 
 	public void collect() {
 		
-		
 	}
 
 	public void process() {
@@ -21,8 +20,8 @@ public class ProfilePage extends PageBase {
 		
 	}
 
-	public void render() {
-		// TODO Auto-generated method stub
+	public String render() {
+		return  "Ho!!!!!! The Megapode!!!";
 		
 	}
 

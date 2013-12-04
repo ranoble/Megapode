@@ -97,7 +97,7 @@ public class HttpServer {
             port = Integer.parseInt(args[0]);
         }
         
-        ActorSystem system = ActorSystem.create("Application System");
+        ActorSystem system = ActorSystem.create("Application-System");
         ActorRef master = system.actorOf(Props.create(CoordinatingActor.class));
         
         system.registerOnTermination(new Runnable(){
@@ -151,11 +151,19 @@ public class HttpServer {
 
         private ActorRef coordinator;
 		private ActorSystem system;
+		private ITypedRequest requester;
 
-		public HttpHandler(ActorSystem system, ActorRef coordinator) {
+		public HttpHandler(final ActorSystem system, final ActorRef coordinator) {
             super();
             this.coordinator = coordinator; 
             this.system = system;
+            
+            requester =
+          		  TypedActor.get(system).typedActorOf(new TypedProps<TypedRequest>(TypedRequest.class,  new Creator<TypedRequest>(){
+          			  public TypedRequest create() {
+          				  return new TypedRequest(coordinator);
+          			  }
+          		  }), "entrypoint");
         }
 
         public void handle(
@@ -175,12 +183,7 @@ public class HttpServer {
                 System.out.println("Incoming entity content (bytes): " + entityContent.length);
             }
 
-            ITypedRequest requester =
-            		  TypedActor.get(system).typedActorOf(new TypedProps<TypedRequest>(TypedRequest.class,  new Creator<TypedRequest>(){
-            			  public TypedRequest create() {
-            				  return new TypedRequest(coordinator);
-            			  }
-            		  }), "entrypoint");
+            
             Option<String> result = requester.process(request, response, context);
             response.setStatusCode(HttpStatus.SC_OK);
 

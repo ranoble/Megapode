@@ -46,6 +46,14 @@ public abstract class PageBase implements Page {
 		this.response = response;
 		this.context = context;
 	}
+	//try {
+//	  String result = operation();
+//	  getSender().tell(result, getSelf());
+//	} catch (Exception e) {
+//	  getSender().tell(new akka.actor.Status.Failure(e), getSelf());
+//	  throw e;
+//	}
+	///akka.pattern.Patterns.pipe(future, system.dispatcher()).to(actor);
 	
 	public Future<Object> await(){
 		final Promise<Object> waiter = Futures.promise();
