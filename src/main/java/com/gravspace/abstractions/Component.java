@@ -7,6 +7,6 @@ public interface Component {
 	
 	public void process();
 	
-	public String render();
+	public String render() throws Exception;
 	public Future<Object> await();
 }

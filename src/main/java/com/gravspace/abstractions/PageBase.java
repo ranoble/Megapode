@@ -23,21 +23,16 @@ import akka.util.Timeout;
 import com.gravspace.messages.TaskMessage;
 
 
-public abstract class PageBase implements Page {
-	ActorRef coordinatingActor;
-	UntypedActorContext actorContext;
-	List<Future<Object>> taskList;
-	Set<Promise<Object>> awaitListeners;
+public abstract class PageBase  extends ConcurrantCallable implements Page {
+
 	
 	HttpRequest request;
 	HttpResponse response;
 	HttpContext context;
 	
 	public PageBase(final ActorRef coordinatingActor, final UntypedActorContext actorContext){
-		this.coordinatingActor = coordinatingActor;
-		this.actorContext = actorContext;
-		taskList = Collections.synchronizedList(new ArrayList<Future<Object>>());
-		awaitListeners = new CopyOnWriteArraySet<Promise<Object>>();
+		super(coordinatingActor, actorContext);
+
 	}
 	
 	public void initialise(HttpRequest request, HttpResponse response,
@@ -46,54 +41,7 @@ public abstract class PageBase implements Page {
 		this.response = response;
 		this.context = context;
 	}
-	//try {
-//	  String result = operation();
-//	  getSender().tell(result, getSelf());
-//	} catch (Exception e) {
-//	  getSender().tell(new akka.actor.Status.Failure(e), getSelf());
-//	  throw e;
-//	}
-	///akka.pattern.Patterns.pipe(future, system.dispatcher()).to(actor);
 	
-	public Future<Object> await(){
-		final Promise<Object> waiter = Futures.promise();
-		if (taskList.isEmpty()){
-			waiter.success(null);
-		}
-		awaitListeners.add(waiter);
-		return waiter.future();
-	}
-
-	public Future<Object> ask(TaskMessage message){
-		Timeout timeout = new Timeout(Duration.create(1, "minute"));
-		final Future<Object> future = Patterns.ask(coordinatingActor, message, timeout);
-
-		taskList.add(future);
-		
-		future.onSuccess(new OnSuccess<Object>() {
-			@Override
-			public void onSuccess(Object response) throws Throwable {
-				taskList.remove(future);
-				notifyWaiters(future);
-			}
-		}, getActorContext().dispatcher());
-		return future;
-	}
 	
-	protected void notifyWaiters(Future<Object> future) {
-		if (taskList.isEmpty()){
-			for (Promise<Object> waiter: awaitListeners){
-				waiter.success(future);
-			}
-		}
-	}
-
-	public ActorRef getCoordinatingActor() {
-		return coordinatingActor;
-	}
-
-	public UntypedActorContext getActorContext() {
-		return actorContext;
-	}
 
 }

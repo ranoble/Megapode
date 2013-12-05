@@ -1,5 +1,5 @@
 package com.gravspace.messages;
 
-public class ResponseMessage {
+public class ResponseMessage  implements Message{
 
 }

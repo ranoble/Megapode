@@ -10,6 +10,7 @@ import scala.concurrent.ExecutionContext;
 import scala.concurrent.Future;
 import scala.concurrent.duration.Duration;
 
+import com.gravspace.messages.RenderMessage;
 import com.gravspace.messages.RequestMessage;
 import com.gravspace.messages.ResponseMessage;
 
@@ -22,30 +23,26 @@ import akka.event.LoggingAdapter;
 import akka.pattern.Patterns;
 import akka.util.Timeout;
 
-public class PageHandler extends UntypedActor {
+public class RendererHandler extends UntypedActor {
 	LoggingAdapter log = Logging.getLogger(getContext().system(), this);
-	Map<String, Class<? extends Page>> pages;
-	Map<String, ActorRef> routes;
+	Map<String, Class<? extends Renderer>> renderers;
 	
-	public PageHandler(Map<String, Class<? extends Page>> pages){
-		this.pages = pages;
+	public RendererHandler(Map<String, Class<? extends Renderer>> renderers){
+		this.renderers = renderers;
 		
 	}
 
 	@Override
 	public void onReceive(Object rawMessage) throws Exception {
-		log.info("Page got: "+rawMessage.getClass().getCanonicalName());
-		if (rawMessage instanceof RequestMessage){
-			log.info("Handelling Request");
-			RequestMessage message = (RequestMessage)rawMessage;
+		log.info("Renderer got: "+rawMessage.getClass().getCanonicalName());
+		if (rawMessage instanceof RenderMessage){
+			RenderMessage message = (RenderMessage)rawMessage;
 			//final ActorRef coordinatingActor, final UntypedActorContext actorContext
-			Page page = pages.get(message.getRouteToken()).getConstructor(ActorRef.class, UntypedActorContext.class).newInstance(getSender(), this.context());
-			page.collect();
-			page.await();
-			page.process();
-			String rendered = page.render();
-			getSender().tell(rendered, getSelf());
+			Renderer page = renderers.get(message.getTemplateName()).getConstructor(ActorRef.class, UntypedActorContext.class).newInstance(this.getSender(), this.context());
 			
+			String rendered = page.render(message.getContext());
+//			akka.pattern.Patterns.pipe(rendered, this.getContext().dispatcher()).to(getSender());
+			getSender().tell(rendered, getSelf());
 		} 
 		else {
 			unhandled(rawMessage);

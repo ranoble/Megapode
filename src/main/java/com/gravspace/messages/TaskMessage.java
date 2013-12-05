@@ -1,5 +1,5 @@
 package com.gravspace.messages;
 
-public class TaskMessage {
+public class TaskMessage  implements Message{
 
 }

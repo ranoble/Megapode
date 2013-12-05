@@ -1,6 +1,6 @@
 package com.gravspace.messages;
 
-public class RequestMessage {
+public class RequestMessage implements Message {
 	final String routeToken;
 	final RequestPayload payload;
 	
