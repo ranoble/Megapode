@@ -3,6 +3,7 @@ package com.gravspace.abstractions;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
 
@@ -21,6 +22,7 @@ import akka.pattern.Patterns;
 import akka.util.Timeout;
 
 import com.gravspace.messages.TaskMessage;
+import com.gravspace.util.Layers;
 
 
 public abstract class PageBase  extends ConcurrantCallable implements Page {
@@ -30,8 +32,8 @@ public abstract class PageBase  extends ConcurrantCallable implements Page {
 	HttpResponse response;
 	HttpContext context;
 	
-	public PageBase(final ActorRef coordinatingActor, final UntypedActorContext actorContext){
-		super(coordinatingActor, actorContext);
+	public PageBase(final Map<Layers, ActorRef> routers, final ActorRef coordinatingActor, final UntypedActorContext actorContext){
+		super(routers, coordinatingActor, actorContext);
 
 	}
 	

@@ -12,14 +12,18 @@ import akka.actor.UntypedActorContext;
 
 import com.gravspace.abstractions.PageBase;
 import com.gravspace.messages.RenderMessage;
+import com.gravspace.util.Layers;
 
 public class ProfilePage extends PageBase {
 	
+	public ProfilePage(Map<Layers, ActorRef> routers,
+			ActorRef coordinatingActor, UntypedActorContext actorContext) {
+		super(routers, coordinatingActor, actorContext);
+	}
+
 	String name = "The Megapode";
 
-	public ProfilePage(ActorRef coordinatingActor, UntypedActorContext actorContext) {
-		super(coordinatingActor, actorContext);
-	}
+	
 
 	public void collect() {
 		
@@ -42,7 +46,7 @@ public class ProfilePage extends PageBase {
 		
 //		""
 		// (String)result
-		return "Ho?";
+		return (String) result;
 		
 	}
 

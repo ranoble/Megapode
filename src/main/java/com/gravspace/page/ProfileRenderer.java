@@ -1,13 +1,18 @@
 package com.gravspace.page;
 
+import java.util.Map;
+
+import com.gravspace.util.Layers;
+
 import akka.actor.ActorRef;
 import akka.actor.UntypedActorContext;
 
 public class ProfileRenderer extends RendererBase {
 
-	public ProfileRenderer(ActorRef coordinatingActor,
-			UntypedActorContext actorContext) {
-		super(coordinatingActor, actorContext);
+
+	public ProfileRenderer(Map<Layers, ActorRef> routers,
+			ActorRef coordinatingActor, UntypedActorContext actorContext) {
+		super(routers, coordinatingActor, actorContext);
 	}
 
 	@Override

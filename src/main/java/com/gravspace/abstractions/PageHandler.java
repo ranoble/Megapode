@@ -12,6 +12,7 @@ import scala.concurrent.duration.Duration;
 
 import com.gravspace.messages.RequestMessage;
 import com.gravspace.messages.ResponseMessage;
+import com.gravspace.util.Layers;
 
 import akka.actor.ActorRef;
 import akka.actor.UntypedActor;
@@ -26,10 +27,11 @@ public class PageHandler extends UntypedActor {
 	LoggingAdapter log = Logging.getLogger(getContext().system(), this);
 	Map<String, Class<? extends Page>> pages;
 	Map<String, ActorRef> routes;
+	private Map<Layers, ActorRef> routers;
 	
-	public PageHandler(Map<String, Class<? extends Page>> pages){
+	public PageHandler(Map<Layers, ActorRef> routers, Map<String, Class<? extends Page>> pages){
 		this.pages = pages;
-		
+		this.routers = routers;
 	}
 
 	@Override
@@ -39,7 +41,7 @@ public class PageHandler extends UntypedActor {
 			log.info("Handelling Request");
 			RequestMessage message = (RequestMessage)rawMessage;
 			//final ActorRef coordinatingActor, final UntypedActorContext actorContext
-			Page page = pages.get(message.getRouteToken()).getConstructor(ActorRef.class, UntypedActorContext.class).newInstance(getSender(), this.context());
+			Page page = pages.get(message.getRouteToken()).getConstructor(Map.class, ActorRef.class, UntypedActorContext.class).newInstance(routers, getSender(), this.context());
 			page.collect();
 			page.await();
 			page.process();

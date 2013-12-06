@@ -3,11 +3,13 @@ package com.gravspace.abstractions;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
 
 import com.gravspace.messages.RenderMessage;
 import com.gravspace.messages.TaskMessage;
+import com.gravspace.util.Layers;
 
 import scala.concurrent.Future;
 import scala.concurrent.Promise;
@@ -27,10 +29,12 @@ public class ConcurrantCallable {
 	protected UntypedActorContext actorContext;
 	protected List<Future<Object>> taskList;
 	protected Set<Promise<Object>> awaitListeners;
+	protected Map<Layers, ActorRef> routers;
 	
-	public ConcurrantCallable(final ActorRef coordinatingActor, final UntypedActorContext actorContext){
+	public ConcurrantCallable(final Map<Layers, ActorRef> routers, final ActorRef coordinatingActor, final UntypedActorContext actorContext){
 		this.coordinatingActor = coordinatingActor;
 		this.actorContext = actorContext;
+		this.routers = routers;
 		log = Logging.getLogger(actorContext.system(), this);
 		taskList = Collections.synchronizedList(new ArrayList<Future<Object>>());
 		awaitListeners = new CopyOnWriteArraySet<Promise<Object>>();
@@ -45,10 +49,10 @@ public class ConcurrantCallable {
 		return waiter.future();
 	}
 
-	public Future<Object> ask(Object message){
+	public Future<Object> ask(RenderMessage message){
 		log.info("Asking");
 		Timeout timeout = new Timeout(Duration.create(1, "minute"));
-		final Future<Object> future = Patterns.ask(coordinatingActor, message, timeout);
+		final Future<Object> future = Patterns.ask(routers.get(Layers.RENDERER), message, timeout);
 		log.info("Asking"+future.toString());
 		taskList.add(future);
 		

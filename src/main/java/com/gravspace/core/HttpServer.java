@@ -98,7 +98,7 @@ public class HttpServer {
         }
         
         ActorSystem system = ActorSystem.create("Application-System");
-        ActorRef master = system.actorOf(Props.create(CoordinatingActor.class));
+        ActorRef master = system.actorOf(Props.create(CoordinatingActor.class), "Coordinator");
         
         system.registerOnTermination(new Runnable(){
                 public void run() {
@@ -143,6 +143,8 @@ public class HttpServer {
         Thread t = new RequestListenerThread(port, httpService, sf);
         t.setDaemon(false);
         t.start();
+        
+        t.join();
     }
     
     
