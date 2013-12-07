@@ -1,4 +1,4 @@
-package com.gravspace.abstractions;
+package com.gravspace.handlers;
 
 import java.lang.reflect.Constructor;
 import java.util.Collections;
@@ -12,6 +12,7 @@ import scala.concurrent.ExecutionContext;
 import scala.concurrent.Future;
 import scala.concurrent.duration.Duration;
 
+import com.gravspace.abstractions.Renderer;
 import com.gravspace.messages.RenderMessage;
 import com.gravspace.messages.RequestMessage;
 import com.gravspace.messages.ResponseMessage;

@@ -6,11 +6,10 @@ import java.util.Map;
 import scala.concurrent.Await;
 import scala.concurrent.Future;
 import scala.concurrent.duration.Duration;
-
 import akka.actor.ActorRef;
 import akka.actor.UntypedActorContext;
 
-import com.gravspace.abstractions.PageBase;
+import com.gravspace.bases.PageBase;
 import com.gravspace.messages.RenderMessage;
 import com.gravspace.util.Layers;
 

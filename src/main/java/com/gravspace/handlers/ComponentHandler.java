@@ -1,4 +1,4 @@
-package com.gravspace.abstractions;
+package com.gravspace.handlers;
 
 import java.util.Map;
 
@@ -10,6 +10,9 @@ import scala.concurrent.ExecutionContext;
 import scala.concurrent.Future;
 import scala.concurrent.duration.Duration;
 
+import com.gravspace.abstractions.Component;
+import com.gravspace.abstractions.Page;
+import com.gravspace.messages.ComponentMessage;
 import com.gravspace.messages.RequestMessage;
 import com.gravspace.messages.ResponseMessage;
 import com.gravspace.util.Layers;
@@ -23,29 +26,29 @@ import akka.event.LoggingAdapter;
 import akka.pattern.Patterns;
 import akka.util.Timeout;
 
-public class PageHandler extends UntypedActor {
+public class ComponentHandler extends UntypedActor {
 	LoggingAdapter log = Logging.getLogger(getContext().system(), this);
-	Map<String, Class<? extends Page>> pages;
+	Map<String, Class<? extends Component>> components;
 	Map<String, ActorRef> routes;
 	private Map<Layers, ActorRef> routers;
 	
-	public PageHandler(Map<Layers, ActorRef> routers, Map<String, Class<? extends Page>> pages){
-		this.pages = pages;
+	public ComponentHandler(Map<Layers, ActorRef> routers, Map<String, Class<? extends Component>> components){
+		this.components = components;
 		this.routers = routers;
 	}
 
 	@Override
 	public void onReceive(Object rawMessage) throws Exception {
 		log.info("Page got: "+rawMessage.getClass().getCanonicalName());
-		if (rawMessage instanceof RequestMessage){
+		if (rawMessage instanceof ComponentMessage){
 			log.info("Handelling Request");
-			RequestMessage message = (RequestMessage)rawMessage;
-			//final ActorRef coordinatingActor, final UntypedActorContext actorContext
-			Page page = pages.get(message.getRouteToken()).getConstructor(Map.class, ActorRef.class, UntypedActorContext.class).newInstance(routers, getSender(), this.context());
-			page.collect();
-			page.await();
-			page.process();
-			String rendered = page.render();
+			ComponentMessage message = (ComponentMessage)rawMessage;
+			Component component = components.get(message.getRouteToken()).getConstructor(Map.class, ActorRef.class, UntypedActorContext.class).newInstance(routers, getSender(), this.context());
+			component.initialise(message.getParameters());
+			component.collect();
+			component.await();
+			component.process();
+			String rendered = component.render();
 			getSender().tell(rendered, getSelf());
 			
 		} 

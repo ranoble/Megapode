@@ -1,4 +1,4 @@
-package com.gravspace.abstractions;
+package com.gravspace.bases;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -21,6 +21,8 @@ import akka.dispatch.OnSuccess;
 import akka.pattern.Patterns;
 import akka.util.Timeout;
 
+import com.gravspace.abstractions.ConcurrantCallable;
+import com.gravspace.abstractions.Page;
 import com.gravspace.messages.TaskMessage;
 import com.gravspace.util.Layers;
 
@@ -44,6 +46,7 @@ public abstract class PageBase  extends ConcurrantCallable implements Page {
 		this.context = context;
 	}
 	
+	public void initialise(Object... args){}
 	
 
 }

@@ -2,6 +2,7 @@ package com.gravspace.page;
 
 import java.util.Map;
 
+import com.gravspace.bases.RendererBase;
 import com.gravspace.util.Layers;
 
 import akka.actor.ActorRef;

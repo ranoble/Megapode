@@ -1,4 +1,4 @@
-package com.gravspace.page;
+package com.gravspace.bases;
 
 import java.io.StringWriter;
 import java.util.Map;

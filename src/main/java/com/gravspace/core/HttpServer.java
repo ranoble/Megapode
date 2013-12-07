@@ -66,7 +66,7 @@ import org.apache.http.protocol.ResponseServer;
 import org.apache.http.protocol.UriHttpRequestHandlerMapper;
 import org.apache.http.util.EntityUtils;
 
-import com.gravspace.abstractions.PageHandler;
+import com.gravspace.handlers.PageHandler;
 import com.gravspace.messages.RequestMessage;
 import com.gravspace.messages.RequestPayload;
 

@@ -1,8 +1,10 @@
 package com.gravspace.core;
 
 import java.util.ArrayList;
+
 import akka.event.Logging;
 import akka.event.LoggingAdapter;
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -18,9 +20,9 @@ import akka.routing.SmallestMailboxRouter;
 import akka.util.Timeout;
 
 import com.gravspace.abstractions.Page;
-import com.gravspace.abstractions.PageHandler;
 import com.gravspace.abstractions.Renderer;
-import com.gravspace.abstractions.RendererHandler;
+import com.gravspace.handlers.PageHandler;
+import com.gravspace.handlers.RendererHandler;
 import com.gravspace.messages.RenderMessage;
 import com.gravspace.messages.RequestMessage;
 import com.gravspace.page.ProfilePage;
