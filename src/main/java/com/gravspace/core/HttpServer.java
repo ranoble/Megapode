@@ -66,6 +66,8 @@ import org.apache.http.protocol.ResponseServer;
 import org.apache.http.protocol.UriHttpRequestHandlerMapper;
 import org.apache.http.util.EntityUtils;
 
+import com.gravspace.entrypoint.IRequestHandlerActor;
+import com.gravspace.entrypoint.RequestHandlerActor;
 import com.gravspace.handlers.PageHandler;
 import com.gravspace.messages.RequestMessage;
 import com.gravspace.messages.RequestPayload;
@@ -153,7 +155,7 @@ public class HttpServer {
 
         private ActorRef coordinator;
 		private ActorSystem system;
-		private ITypedRequest requester;
+		private IRequestHandlerActor requester;
 
 		public HttpHandler(final ActorSystem system, final ActorRef coordinator) {
             super();
@@ -161,9 +163,9 @@ public class HttpServer {
             this.system = system;
             
             requester =
-          		  TypedActor.get(system).typedActorOf(new TypedProps<TypedRequest>(TypedRequest.class,  new Creator<TypedRequest>(){
-          			  public TypedRequest create() {
-          				  return new TypedRequest(coordinator);
+          		  TypedActor.get(system).typedActorOf(new TypedProps<RequestHandlerActor>(RequestHandlerActor.class,  new Creator<RequestHandlerActor>(){
+          			  public RequestHandlerActor create() {
+          				  return new RequestHandlerActor(coordinator);
           			  }
           		  }), "entrypoint");
         }

@@ -2,7 +2,7 @@ package com.gravspace.messages;
 
 import java.util.List;
 
-public class ComponentMessage {
+public class ComponentMessage implements Message {
 	final String routeToken;
 	final List<?> parameters;
 	

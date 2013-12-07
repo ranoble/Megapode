@@ -7,6 +7,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
 
+import com.gravspace.messages.CalculationMessage;
+import com.gravspace.messages.ComponentMessage;
 import com.gravspace.messages.RenderMessage;
 import com.gravspace.messages.TaskMessage;
 import com.gravspace.util.Layers;
@@ -48,23 +50,53 @@ public class ConcurrantCallable {
 		awaitListeners.add(waiter);
 		return waiter.future();
 	}
-
+	
 	public Future<Object> ask(RenderMessage message){
 		log.info("Asking");
 		Timeout timeout = new Timeout(Duration.create(1, "minute"));
 		final Future<Object> future = Patterns.ask(routers.get(Layers.RENDERER), message, timeout);
 		log.info("Asking"+future.toString());
 		taskList.add(future);
-		
-//		future.onSuccess(new OnSuccess<Object>() {
-//			@Override
-//			public void onSuccess(Object response) throws Throwable {
-//				taskList.remove(future);
-//				notifyWaiters(future);
-//			}
-//		}, getActorContext().dispatcher());
+		monitorForCompletion(future);
 		return future;
 	}
+	
+	public Future<Object> ask(ComponentMessage message){
+		log.info("Asking");
+		Timeout timeout = new Timeout(Duration.create(1, "minute"));
+		final Future<Object> future = Patterns.ask(routers.get(Layers.COMPONENT), message, timeout);
+		log.info("Asking"+future.toString());
+		taskList.add(future);
+		monitorForCompletion(future);
+		return future;
+	}
+	
+	public Future<Object> ask(CalculationMessage message){
+		log.info("Asking");
+		Timeout timeout = new Timeout(Duration.create(1, "minute"));
+		final Future<Object> future = Patterns.ask(routers.get(Layers.CALCULATION), message, timeout);
+		log.info("Asking"+future.toString());
+		taskList.add(future);
+		monitorForCompletion(future);
+		return future;
+	}
+	
+	public void call(TaskMessage message){
+		log.info("Calling");
+		routers.get(Layers.TASK).tell(message, ActorRef.noSender());
+	}
+
+	private void monitorForCompletion(final Future<Object> future) {
+		future.onSuccess(new OnSuccess<Object>() {
+			@Override
+			public void onSuccess(Object response) throws Throwable {
+				taskList.remove(future);
+				notifyWaiters(future);
+			}
+		}, getActorContext().dispatcher());
+	}
+	
+
 	
 	
 	

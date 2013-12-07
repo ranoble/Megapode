@@ -1,4 +1,4 @@
-package com.gravspace.core;
+package com.gravspace.entrypoint;
 
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
@@ -18,11 +18,11 @@ import scala.concurrent.Future;
 import scala.concurrent.Await;
 import scala.concurrent.duration.Duration;
 
-public class TypedRequest implements ITypedRequest {
+public class RequestHandlerActor implements IRequestHandlerActor {
 	
 	private ActorRef coordinator;
 
-	public TypedRequest(final ActorRef coordinator){
+	public RequestHandlerActor(final ActorRef coordinator){
 		this.coordinator = coordinator;
 	}
 

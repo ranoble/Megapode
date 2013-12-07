@@ -2,27 +2,15 @@ package com.gravspace.handlers;
 
 import java.util.Map;
 
-import org.apache.http.HttpResponse;
-
-import scala.Function1;
-import scala.PartialFunction;
-import scala.concurrent.ExecutionContext;
-import scala.concurrent.Future;
-import scala.concurrent.duration.Duration;
-
-import com.gravspace.abstractions.Page;
-import com.gravspace.messages.RequestMessage;
-import com.gravspace.messages.ResponseMessage;
-import com.gravspace.util.Layers;
-
 import akka.actor.ActorRef;
 import akka.actor.UntypedActor;
 import akka.actor.UntypedActorContext;
-import akka.dispatch.OnSuccess;
 import akka.event.Logging;
 import akka.event.LoggingAdapter;
-import akka.pattern.Patterns;
-import akka.util.Timeout;
+
+import com.gravspace.abstractions.Page;
+import com.gravspace.messages.RequestMessage;
+import com.gravspace.util.Layers;
 
 public class PageHandler extends UntypedActor {
 	LoggingAdapter log = Logging.getLogger(getContext().system(), this);
