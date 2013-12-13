@@ -8,6 +8,7 @@ import akka.event.LoggingAdapter;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 
 import scala.concurrent.Future;
 import scala.concurrent.duration.Duration;
@@ -19,14 +20,23 @@ import akka.pattern.Patterns;
 import akka.routing.SmallestMailboxRouter;
 import akka.util.Timeout;
 
+import com.gravspace.abstractions.Calculation;
 import com.gravspace.abstractions.Page;
+import com.gravspace.abstractions.PersistanceAccessor;
 import com.gravspace.abstractions.Renderer;
+import com.gravspace.abstractions.Task;
+import com.gravspace.handlers.CalculationHandler;
 import com.gravspace.handlers.PageHandler;
+import com.gravspace.handlers.PersistanceHandler;
 import com.gravspace.handlers.RendererHandler;
+import com.gravspace.handlers.TaskHandler;
 import com.gravspace.messages.RenderMessage;
 import com.gravspace.messages.RequestMessage;
+import com.gravspace.page.GetProfileData;
+import com.gravspace.page.ProfileCalculation;
 import com.gravspace.page.ProfilePage;
 import com.gravspace.page.ProfileRenderer;
+import com.gravspace.page.ProfileTask;
 import com.gravspace.util.Layers;
 
 public class CoordinatingActor extends UntypedActor {
@@ -44,6 +54,9 @@ public class CoordinatingActor extends UntypedActor {
 		routerMap = new HashMap<Layers, ActorRef>();
 		routerMap.put(Layers.PAGE, generatePageRouter());
 		routerMap.put(Layers.RENDERER, generateRenderRouter());
+		routerMap.put(Layers.TASK, generateTaskRouter());
+		routerMap.put(Layers.CALCULATION, generateCalculationRouter());
+		routerMap.put(Layers.DATA_ACCESS, generateDataRouter());
 	}
 
 	private ActorRef generatePageRouter() {
@@ -55,6 +68,43 @@ public class CoordinatingActor extends UntypedActor {
 		}
 		return this.getContext().actorOf(
 				  Props.empty().withRouter(SmallestMailboxRouter.create(pageActors)));
+	}
+	
+	private ActorRef generateDataRouter() {
+		Properties p = new Properties();
+		p.setProperty("user", "postgres");
+		p.setProperty("password", "postgres");
+		p.setProperty("url", "jdbc:postgresql://localhost/megapode_test");
+		List<ActorRef> dataActors = new ArrayList<ActorRef>();
+		Map<String, Class<? extends PersistanceAccessor>> routers = new HashMap<String, Class<? extends PersistanceAccessor>>();
+		routers.put("doX", GetProfileData.class);
+		for (int i = 0; i < 5; i++){
+			dataActors.add(this.getContext().actorOf(Props.create(PersistanceHandler.class, routerMap, routers, p), "DataHandler-"+i));
+		}
+		return this.getContext().actorOf(
+				  Props.empty().withRouter(SmallestMailboxRouter.create(dataActors)));
+	}
+	
+	private ActorRef generateTaskRouter() {
+		List<ActorRef> taskActors = new ArrayList<ActorRef>();
+		Map<String, Class<? extends Task>> routers = new HashMap<String, Class<? extends Task>>();
+		routers.put("simple", ProfileTask.class);
+		for (int i = 0; i < 5; i++){
+			taskActors.add(this.getContext().actorOf(Props.create(TaskHandler.class, routerMap, routers), "TaskHandler-"+i));
+		}
+		return this.getContext().actorOf(
+				  Props.empty().withRouter(SmallestMailboxRouter.create(taskActors)));
+	}
+	
+	private ActorRef generateCalculationRouter() {
+		List<ActorRef> calcActors = new ArrayList<ActorRef>();
+		Map<String, Class<? extends Calculation>> routers = new HashMap<String, Class<? extends Calculation>>();
+		routers.put("simple", ProfileCalculation.class);
+		for (int i = 0; i < 5; i++){
+			calcActors.add(this.getContext().actorOf(Props.create(CalculationHandler.class, routerMap, routers), "CalculationHandler-"+i));
+		}
+		return this.getContext().actorOf(
+				  Props.empty().withRouter(SmallestMailboxRouter.create(calcActors)));
 	}
 	
 	private ActorRef generateRenderRouter() {

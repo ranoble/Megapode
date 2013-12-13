@@ -9,6 +9,7 @@ import java.util.concurrent.CopyOnWriteArraySet;
 
 import com.gravspace.messages.CalculationMessage;
 import com.gravspace.messages.ComponentMessage;
+import com.gravspace.messages.PersistanceMessage;
 import com.gravspace.messages.RenderMessage;
 import com.gravspace.messages.TaskMessage;
 import com.gravspace.util.Layers;
@@ -71,6 +72,16 @@ public class ConcurrantCallable {
 		return future;
 	}
 	
+	public Future<Object> ask(PersistanceMessage message){
+		log.info("Asking");
+		Timeout timeout = new Timeout(Duration.create(1, "minute"));
+		final Future<Object> future = Patterns.ask(routers.get(Layers.DATA_ACCESS), message, timeout);
+		log.info("Asking"+future.toString());
+		taskList.add(future);
+		monitorForCompletion(future);
+		return future;
+	}
+	
 	public Future<Object> ask(CalculationMessage message){
 		log.info("Asking");
 		Timeout timeout = new Timeout(Duration.create(1, "minute"));
@@ -103,7 +114,9 @@ public class ConcurrantCallable {
 	protected void notifyWaiters(Future<Object> future) {
 		if (taskList.isEmpty()){
 			for (Promise<Object> waiter: awaitListeners){
-				waiter.success(future);
+				if (!waiter.isCompleted()){
+					waiter.success(future);
+				}
 			}
 		}
 	}

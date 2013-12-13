@@ -64,7 +64,7 @@ public class PersistanceHandler extends UntypedActor {
 			Class<? extends PersistanceAccessor> calculationClass = persistanceTasks.get(task_name);
 			Constructor<? extends PersistanceAccessor> constr = calculationClass.getConstructor(Map.class, ActorRef.class, UntypedActorContext.class, Connection.class);
 			PersistanceAccessor persistor = constr.newInstance(routers, getSender(), this.context(), this.connection);
-			Map<String, ?> result = persistor.performTask(message.getArgs());
+			Map<String, ?> result = persistor.performTask(message.getArgs().toArray());
 			getSender().tell(result, getSelf());
 		} 
 		else {
