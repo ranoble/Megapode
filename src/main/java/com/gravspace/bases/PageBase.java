@@ -30,20 +30,25 @@ import com.gravspace.util.Layers;
 public abstract class PageBase  extends ConcurrantCallable implements Page {
 
 	
-	HttpRequest request;
-	HttpResponse response;
-	HttpContext context;
+	protected HttpRequest request;
+	protected HttpResponse response;
+	protected HttpContext context;
+	protected Map<String, String> params;
+	
 	
 	public PageBase(final Map<Layers, ActorRef> routers, final ActorRef coordinatingActor, final UntypedActorContext actorContext){
 		super(routers, coordinatingActor, actorContext);
 
 	}
 	
-	public void initialise(HttpRequest request, HttpResponse response,
-			HttpContext context) {
+	public void initialise(HttpRequest request, 
+			HttpResponse response,
+			HttpContext context,
+			Map<String, String> params) {
 		this.request = request;
 		this.response = response;
 		this.context = context;
+		this.params = params;
 	}
 	
 	public void initialise(Object... args){}

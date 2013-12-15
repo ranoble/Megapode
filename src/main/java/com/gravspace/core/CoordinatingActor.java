@@ -22,6 +22,7 @@ import akka.util.Timeout;
 
 import com.gravspace.abstractions.Calculation;
 import com.gravspace.abstractions.Page;
+import com.gravspace.abstractions.PageRoute;
 import com.gravspace.abstractions.PersistanceAccessor;
 import com.gravspace.abstractions.Renderer;
 import com.gravspace.abstractions.Task;
@@ -46,6 +47,7 @@ public class CoordinatingActor extends UntypedActor {
 	
 	public CoordinatingActor(){
 		routerMap = new HashMap<Layers, ActorRef>();
+//		routerMap.put(Layers.ROUTING, generateUrlRouter());
 		routerMap.put(Layers.PAGE, generatePageRouter());
 		routerMap.put(Layers.RENDERER, generateRenderRouter());
 		routerMap.put(Layers.TASK, generateTaskRouter());
@@ -53,10 +55,21 @@ public class CoordinatingActor extends UntypedActor {
 		routerMap.put(Layers.DATA_ACCESS, generateDataRouter());
 	}
 
+//	private ActorRef generateUrlRouter() {
+////		List<ActorRef> routingActor = new ArrayList<ActorRef>();
+////		Map<String, Class<? extends Page>> routers = new HashMap<String, Class<? extends Page>>();
+////		for (int i = 0; i < 5; i++){
+////			routingActor.add(this.getContext().actorOf(Props.create(PageHandler.class, urlMap, routers), "PageHandler-"+i));
+////		}
+////		return this.getContext().actorOf(
+////				  Props.empty().withRouter(SmallestMailboxRouter.create(routingActor)));
+//		return null;
+//	}
+
 	private ActorRef generatePageRouter() {
 		List<ActorRef> pageActors = new ArrayList<ActorRef>();
-		Map<String, Class<? extends Page>> routers = new HashMap<String, Class<? extends Page>>();
-		routers.put("*", ProfilePage.class);
+		List<PageRoute> routers = new ArrayList<PageRoute>();
+		routers.add(new PageRoute("/", ProfilePage.class));
 		for (int i = 0; i < 5; i++){
 			pageActors.add(this.getContext().actorOf(Props.create(PageHandler.class, routerMap, routers), "PageHandler-"+i));
 		}
