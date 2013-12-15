@@ -30,6 +30,12 @@
 	    <version>1.18</version>
 	</dependency>
             
+	<!--  http://jurlmap.codegremlins.com/manual -->
+	<dependency>
+	    <groupId>commons-dbutils</groupId>
+	    <artifactId>commons-dbutils</artifactId>
+	    <version>1.5</version>
+	</dependency>
                     
   </dependencies>
 </project>

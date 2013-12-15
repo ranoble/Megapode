@@ -28,7 +28,7 @@ public abstract class RendererBase extends ConcurrantCallable implements Rendere
 		Velocity.evaluate(v_context,
 				sw,
                 "basic template",
-                "This is a new MegaPode Template...");//getTemplate(getTemplate());		//Velocity.mergeTemplate(getTemplate(), v_context, sw);
+                "This is a new MegaPode Template... $firstname ");//getTemplate(getTemplate());		//Velocity.mergeTemplate(getTemplate(), v_context, sw);
 //		t.merge(v_context, sw);
 		return sw.toString();
 	}
