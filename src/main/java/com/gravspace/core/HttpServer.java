@@ -26,16 +26,20 @@
  */
 package com.gravspace.core;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.InterruptedIOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.URL;
-import java.net.URLDecoder;
-import java.nio.charset.Charset;
 import java.security.KeyStore;
+import java.util.HashMap;
 import java.util.Locale;
+import java.util.Map;
+
+import javax.net.ssl.KeyManager;
+import javax.net.ssl.KeyManagerFactory;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLServerSocketFactory;
 
 import org.apache.http.ConnectionClosedException;
 import org.apache.http.Consts;
@@ -49,7 +53,6 @@ import org.apache.http.HttpServerConnection;
 import org.apache.http.HttpStatus;
 import org.apache.http.MethodNotSupportedException;
 import org.apache.http.entity.ContentType;
-import org.apache.http.entity.FileEntity;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.DefaultBHttpServerConnection;
 import org.apache.http.impl.DefaultBHttpServerConnectionFactory;
@@ -66,26 +69,17 @@ import org.apache.http.protocol.ResponseServer;
 import org.apache.http.protocol.UriHttpRequestHandlerMapper;
 import org.apache.http.util.EntityUtils;
 
-import com.gravspace.entrypoint.IRequestHandlerActor;
-import com.gravspace.entrypoint.RequestHandlerActor;
-import com.gravspace.handlers.PageHandler;
-import com.gravspace.messages.RequestMessage;
-import com.gravspace.messages.RequestPayload;
-
 import akka.actor.ActorRef;
 import akka.actor.ActorSystem;
 import akka.actor.Props;
 import akka.actor.TypedActor;
 import akka.actor.TypedProps;
-import akka.actor.UntypedActor;
-import akka.actor.UntypedActorFactory;
 import akka.japi.Creator;
 import akka.japi.Option;
 
-import javax.net.ssl.KeyManager;
-import javax.net.ssl.KeyManagerFactory;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLServerSocketFactory;
+import com.gravspace.entrypoint.IRequestHandlerActor;
+import com.gravspace.entrypoint.RequestHandlerActor;
+import com.sun.jersey.api.uri.UriTemplate;
 
 /**
  * Basic, yet fully functional and spec compliant, HTTP/1.1 file server.
@@ -180,6 +174,14 @@ public class HttpServer {
                 throw new MethodNotSupportedException(method + " method not supported");
             }
             String target = request.getRequestLine().getUri();
+            UriTemplate template = new UriTemplate("/test/{which}");
+            Map<String, String> templateVariableToValue = new HashMap<String, String>();
+            boolean matches = template.match(target, templateVariableToValue);
+            if (matches){
+            	String s = templateVariableToValue.toString();
+            	
+            }
+            System.out.println("adsda");
 
             if (request instanceof HttpEntityEnclosingRequest) {
                 HttpEntity entity = ((HttpEntityEnclosingRequest) request).getEntity();

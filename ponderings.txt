@@ -2,4 +2,7 @@ I should create interfaces for action components.
 Then use dynamic proxies to transform the data into 
 the actual methods and calls.
 
+Should be able to use a simple "handler implementation that fires 
+off the call.
+
 adaptive rouuters based on mailbox counts

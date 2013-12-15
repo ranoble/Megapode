@@ -31,12 +31,6 @@ import com.gravspace.util.Layers;
 
 public class CoordinatingActor extends UntypedActor {
 	LoggingAdapter log = Logging.getLogger(getContext().system(), this);
-//	private ActorRef pageRouter;
-//	private ActorRef componentRouter;
-//	private ActorRef renderRouter;
-//	private ActorRef taskRouter;
-//	private ActorRef calculationRouter;
-//	private ActorRef dataRequestRouter;
 	private HashMap<Layers, ActorRef> routerMap;
 	
 	

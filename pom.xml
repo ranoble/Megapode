@@ -24,6 +24,12 @@
 	    <artifactId>postgresql</artifactId>
 	    <version>9.1-901.jdbc4</version>
 	</dependency>
+	<dependency>
+	    <groupId>com.sun.jersey</groupId>
+	    <artifactId>jersey-core</artifactId>
+	    <version>1.18</version>
+	</dependency>
+            
                     
   </dependencies>
 </project>
