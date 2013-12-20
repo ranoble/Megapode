@@ -26,8 +26,8 @@ public class RequestHandlerActor implements IRequestHandlerActor {
 		this.coordinator = coordinator;
 	}
 
-	public Option<String> process(HttpRequest request,
-			HttpResponse response, HttpContext context) {
+	public String process(HttpRequest request,
+			HttpResponse response, HttpContext context) throws Exception {
 		// TODO Auto-generated method stub
 		RequestPayload payload = new RequestPayload(context, request, response);
 		RequestMessage message = new RequestMessage("*", payload);
@@ -35,13 +35,13 @@ public class RequestHandlerActor implements IRequestHandlerActor {
 		Future<Object> future = Patterns.ask(coordinator, message, timeout);
 
 		try {
-			return Option.some((String)Await.result(future, Duration.create(1, "minute")));
+			return (String)Await.result(future, Duration.create(1, "minute"));
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+//			return Option.option(arg0)
+			throw e;
+//			System.out.println("An error occured");
+//			return Option.none(e);
 		}
-		
-		return null;
 	}
 
 }

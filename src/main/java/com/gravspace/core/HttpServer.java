@@ -88,7 +88,7 @@ public class HttpServer {
 
     public static void main(String[] args) throws Exception {
        
-        int port = 8080;
+        int port = 8082;
         if (args.length >= 1) {
             port = Integer.parseInt(args[0]);
         }
@@ -189,10 +189,21 @@ public class HttpServer {
             }
 
             
-            Option<String> result = requester.process(request, response, context);
-            response.setStatusCode(HttpStatus.SC_OK);
+            String result;
+			try {
+				result = requester.process(request, response, context);
+				response.setStatusCode(HttpStatus.SC_OK);
+			} catch (Exception e) {
+				System.out.println("Got here");
+				response.setStatusCode(HttpStatus.SC_METHOD_FAILURE);
+            	HttpEntity body = new StringEntity(e.getMessage(),
+                        ContentType.create("text/plain", Consts.UTF_8));
+                response.setEntity(body);
+                
+                return;
+			}
 
-            HttpEntity body = new StringEntity(result.get(),
+            HttpEntity body = new StringEntity(result,
                     ContentType.create("text/plain", Consts.UTF_8));
             response.setEntity(body);
 

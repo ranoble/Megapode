@@ -63,6 +63,7 @@ public class PageHandler extends UntypedActor {
 				String rendered = processPage(page);
 				getSender().tell(rendered, getSelf());
 			} catch (PageNotFoundException | InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException | SecurityException e){
+//				log.error(String.format("Error in handelling [%s]", e.getClass().getCanonicalName()), e);
 				getSender().tell(new Status.Failure(e), getSelf());
 			}
 			

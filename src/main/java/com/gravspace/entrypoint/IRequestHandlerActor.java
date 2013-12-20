@@ -8,7 +8,7 @@ import akka.japi.Option;
 import scala.concurrent.Future;
 
 public interface IRequestHandlerActor {
-	Option<String> process(final HttpRequest request,
+	String process(final HttpRequest request,
             final HttpResponse response,
-            final HttpContext context);
+            final HttpContext context) throws Exception;
 }

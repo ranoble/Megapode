@@ -69,7 +69,7 @@ public class CoordinatingActor extends UntypedActor {
 	private ActorRef generatePageRouter() {
 		List<ActorRef> pageActors = new ArrayList<ActorRef>();
 		List<PageRoute> routers = new ArrayList<PageRoute>();
-		routers.add(new PageRoute("/", ProfilePage.class));
+		routers.add(new PageRoute("/test/{value}/", ProfilePage.class));
 		for (int i = 0; i < 5; i++){
 			pageActors.add(this.getContext().actorOf(Props.create(PageHandler.class, routerMap, routers), "PageHandler-"+i));
 		}
