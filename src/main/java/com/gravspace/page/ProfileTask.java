@@ -10,7 +10,7 @@ import com.gravspace.annotations.Task;
 import com.gravspace.bases.TaskBase;
 import com.gravspace.impl.tasks.ProfileTasks;
 import com.gravspace.util.Layers;
-
+//@Page(path="/user/<user>")
 @Task
 public class ProfileTask extends TaskBase implements ITask, ProfileTasks {
 

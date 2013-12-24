@@ -13,6 +13,7 @@ import akka.actor.UntypedActorContext;
 import com.gravspace.abstractions.ConcurrantCallable;
 import com.gravspace.abstractions.ITask;
 import com.gravspace.util.Layers;
+import com.gravspace.util.TypeUtils;
 
 public abstract class TaskBase extends ConcurrantCallable implements ITask{
 
@@ -23,19 +24,9 @@ public abstract class TaskBase extends ConcurrantCallable implements ITask{
 	}
 	
 	public void act(Object... args) {
-		for (Object argument: args){
-			log.info("vararg: "+argument.toString());
-		}
 		List<Object> arguments = new ArrayList<>(Arrays.asList(args));
 		String methodName = (String) arguments.remove(0);
-		log.info(this.getClass().getCanonicalName());
-		log.info(methodName);
-		//args = new Object[arguments.size()];
-		List<Class> types = new ArrayList<Class>();
-		for (Object argument: arguments){
-			types.add(argument.getClass());
-			log.info(argument.getClass().getCanonicalName()+":"+argument.toString());
-		}
+		List<Class<?>> types = TypeUtils.getListTypes(arguments);
 		try {
 			Method method = this.getClass().getMethod(methodName, types.toArray(new Class[0]));
 			method.invoke(this, arguments.toArray(new Object[0]));
@@ -44,4 +35,6 @@ public abstract class TaskBase extends ConcurrantCallable implements ITask{
 			e.printStackTrace();
 		}
 	}
+
+	
 }
