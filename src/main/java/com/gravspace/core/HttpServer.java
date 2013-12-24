@@ -35,6 +35,7 @@ import java.security.KeyStore;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Properties;
 
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.KeyManagerFactory;
@@ -94,7 +95,9 @@ public class HttpServer {
         }
         
         ActorSystem system = ActorSystem.create("Application-System");
-        ActorRef master = system.actorOf(Props.create(CoordinatingActor.class), "Coordinator");
+        Properties config = new Properties();
+        config.load(HttpServer.class.getResourceAsStream("/megapode.conf"));
+        ActorRef master = system.actorOf(Props.create(CoordinatingActor.class, config), "Coordinator");
         
         system.registerOnTermination(new Runnable(){
                 public void run() {

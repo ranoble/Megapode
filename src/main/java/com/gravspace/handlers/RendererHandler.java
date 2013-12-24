@@ -9,16 +9,16 @@ import akka.actor.UntypedActorContext;
 import akka.event.Logging;
 import akka.event.LoggingAdapter;
 
-import com.gravspace.abstractions.Renderer;
+import com.gravspace.abstractions.IRenderer;
 import com.gravspace.messages.RenderMessage;
 import com.gravspace.util.Layers;
 
 public class RendererHandler extends UntypedActor {
 	LoggingAdapter log = Logging.getLogger(getContext().system(), this);
-	Map<String, Class<? extends Renderer>> renderers;
+	Map<String, Class<? extends IRenderer>> renderers;
 	private Map<Layers, ActorRef> routers;
 	
-	public RendererHandler(Map<Layers, ActorRef> routers, Map<String, Class<? extends Renderer>> renderers){
+	public RendererHandler(Map<Layers, ActorRef> routers, Map<String, Class<? extends IRenderer>> renderers){
 		this.renderers = renderers;
 		this.routers = routers;
 	}
@@ -33,9 +33,9 @@ public class RendererHandler extends UntypedActor {
 			for (String key: renderers.keySet()){
 				log.info(key);
 			}
-			Class<? extends Renderer> renderer = renderers.get(template);
-			Constructor<? extends Renderer> constr = renderer.getConstructor(Map.class, ActorRef.class, UntypedActorContext.class);
-			Renderer page = constr.newInstance(routers, getSender(), this.context());
+			Class<? extends IRenderer> renderer = renderers.get(template);
+			Constructor<? extends IRenderer> constr = renderer.getConstructor(Map.class, ActorRef.class, UntypedActorContext.class);
+			IRenderer page = constr.newInstance(routers, getSender(), this.context());
 			
 			String rendered = page.render(message.getContext());
 			log.info("Rendered: "+rendered);

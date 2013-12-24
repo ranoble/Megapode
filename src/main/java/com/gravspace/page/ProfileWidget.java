@@ -2,9 +2,9 @@ package com.gravspace.page;
 
 import scala.concurrent.Future;
 
-import com.gravspace.abstractions.Component;
+import com.gravspace.abstractions.IComponent;
 
-public class ProfileWidget implements Component {
+public class ProfileWidget implements IComponent {
 
 	public void initialise(Object... args) {
 		// TODO Auto-generated method stub

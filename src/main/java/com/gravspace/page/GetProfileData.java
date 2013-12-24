@@ -12,12 +12,12 @@ import org.apache.commons.dbutils.handlers.MapListHandler;
 import akka.actor.ActorRef;
 import akka.actor.UntypedActorContext;
 
-import com.gravspace.abstractions.PersistanceAccessor;
+import com.gravspace.abstractions.IPersistanceAccessor;
 import com.gravspace.bases.PersistanceBase;
 import com.gravspace.util.Layers;
 //http://commons.apache.org/proper/commons-dbutils/examples.html
 public class GetProfileData extends PersistanceBase implements
-		PersistanceAccessor {
+		IPersistanceAccessor {
 
 	public GetProfileData(Map<Layers, ActorRef> routers,
 			ActorRef coordinatingActor, UntypedActorContext actorContext,

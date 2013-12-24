@@ -12,11 +12,11 @@ import akka.actor.ActorRef;
 import akka.actor.UntypedActorContext;
 
 import com.gravspace.abstractions.ConcurrantCallable;
-import com.gravspace.abstractions.PersistanceAccessor;
+import com.gravspace.abstractions.IPersistanceAccessor;
 import com.gravspace.util.Layers;
 
 public abstract class PersistanceBase extends ConcurrantCallable implements
-		PersistanceAccessor {
+		IPersistanceAccessor {
 
 	protected Connection connection;
 

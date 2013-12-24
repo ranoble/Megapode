@@ -16,7 +16,7 @@ import akka.actor.UntypedActorContext;
 import akka.event.Logging;
 import akka.event.LoggingAdapter;
 
-import com.gravspace.abstractions.Page;
+import com.gravspace.abstractions.IPage;
 import com.gravspace.abstractions.PageRoute;
 import com.gravspace.exceptions.PageNotFoundException;
 import com.gravspace.messages.RequestMessage;
@@ -33,11 +33,11 @@ public class PageHandler extends UntypedActor {
 		this.routers = routers;
 	}
 	
-	public Page loadPage(String uri, HttpRequest request, HttpResponse response, HttpContext context) throws PageNotFoundException, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
+	public IPage loadPage(String uri, HttpRequest request, HttpResponse response, HttpContext context) throws PageNotFoundException, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
 		Map<String, String> parameters = new HashMap<String, String>();
 		for (PageRoute route: pages){
 			if (route.getTemplate().match(uri, parameters)){
-				Page page = route.getPageClass().getConstructor(Map.class, ActorRef.class, UntypedActorContext.class).newInstance(routers, getSender(), this.context());
+				IPage page = route.getPageClass().getConstructor(Map.class, ActorRef.class, UntypedActorContext.class).newInstance(routers, getSender(), this.context());
 				page.initialise(request, 
 						response, 
 						context,
@@ -59,7 +59,7 @@ public class PageHandler extends UntypedActor {
 			HttpRequest request = message.getPayload().getRequest();
 			String uri = request.getRequestLine().getUri();
 			try {
-				Page page = loadPage(uri, request, message.getPayload().getResponse(), message.getPayload().getContext());
+				IPage page = loadPage(uri, request, message.getPayload().getResponse(), message.getPayload().getContext());
 				String rendered = processPage(page);
 				getSender().tell(rendered, getSelf());
 			} catch (PageNotFoundException | InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException | SecurityException e){
@@ -73,7 +73,7 @@ public class PageHandler extends UntypedActor {
 		}
 	}
 
-	private String processPage(Page page) throws Exception {
+	private String processPage(IPage page) throws Exception {
 		page.collect();
 		page.await();
 		page.process();

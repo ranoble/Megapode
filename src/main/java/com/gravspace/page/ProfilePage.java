@@ -11,10 +11,12 @@ import akka.actor.ActorRef;
 import akka.actor.UntypedActorContext;
 
 import com.gravspace.bases.PageBase;
+import com.gravspace.impl.tasks.ProfileTasks;
 import com.gravspace.messages.CalculationMessage;
 import com.gravspace.messages.PersistanceMessage;
 import com.gravspace.messages.RenderMessage;
 import com.gravspace.messages.TaskMessage;
+import com.gravspace.proxy.TaskProxyFactory;
 import com.gravspace.util.Layers;
 
 public class ProfilePage extends PageBase {
@@ -29,9 +31,13 @@ public class ProfilePage extends PageBase {
 	private Future<Object> calculationResult;
 
 	
+	
 
 	public void collect() {
-		call(new TaskMessage("simple", Arrays.asList(new Integer[]{1, 2})));
+		ProfileTasks task = TaskProxyFactory.getProxy(ProfileTasks.class, ProfileTask.class, this);
+//		ProfileTasks task2 = TaskProxyFactory.getProxy(ProfileTask.class, this);
+		task.logTask("Richard!");
+//		call(new TaskMessage("simple", Arrays.asList(new Integer[]{1, 2})));
 		profileData = ask(new PersistanceMessage("doX", Arrays.asList(new Integer[]{1})));
 		log.info("collected");
 	}
@@ -46,7 +52,6 @@ public class ProfilePage extends PageBase {
 		
 		log.info("attempting to load");
 		Map<String, Object> context = (Map<String, Object>) Await.result(profileData, Duration.create(1, "minute"));
-//		context.put("name",name);
 		Future<Object> future = ask(new RenderMessage("hi_pode.vm", context));
 		log.info("waiting...");
 		Object result = Await.result(future, Duration.create(1, "minute"));

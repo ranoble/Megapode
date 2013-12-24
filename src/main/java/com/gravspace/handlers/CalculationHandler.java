@@ -9,16 +9,16 @@ import akka.actor.UntypedActorContext;
 import akka.event.Logging;
 import akka.event.LoggingAdapter;
 
-import com.gravspace.abstractions.Calculation;
+import com.gravspace.abstractions.ICalculation;
 import com.gravspace.messages.CalculationMessage;
 import com.gravspace.util.Layers;
 
 public class CalculationHandler extends UntypedActor {
 	LoggingAdapter log = Logging.getLogger(getContext().system(), this);
-	Map<String, Class<? extends Calculation>> calculations;
+	Map<String, Class<? extends ICalculation>> calculations;
 	private Map<Layers, ActorRef> routers;
 	
-	public CalculationHandler(Map<Layers, ActorRef> routers, Map<String, Class<? extends Calculation>> calculations){
+	public CalculationHandler(Map<Layers, ActorRef> routers, Map<String, Class<? extends ICalculation>> calculations){
 		this.calculations = calculations;
 		this.routers = routers;
 	}
@@ -30,9 +30,9 @@ public class CalculationHandler extends UntypedActor {
 			CalculationMessage message = (CalculationMessage)rawMessage;
 
 			String task_name = message.getTaskName();
-			Class<? extends Calculation> calculationClass = calculations.get(task_name);
-			Constructor<? extends Calculation> constr = calculationClass.getConstructor(Map.class, ActorRef.class, UntypedActorContext.class);
-			Calculation calculation = constr.newInstance(routers, getSender(), this.context());
+			Class<? extends ICalculation> calculationClass = calculations.get(task_name);
+			Constructor<? extends ICalculation> constr = calculationClass.getConstructor(Map.class, ActorRef.class, UntypedActorContext.class);
+			ICalculation calculation = constr.newInstance(routers, getSender(), this.context());
 			
 			Object result = calculation.calculate(message.getArgs());
 			getSender().tell(result, getSelf());

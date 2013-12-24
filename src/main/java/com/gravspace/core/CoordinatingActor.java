@@ -10,6 +10,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
+import org.apache.commons.lang.StringUtils;
+
 import scala.concurrent.Future;
 import scala.concurrent.duration.Duration;
 import akka.actor.ActorRef;
@@ -20,12 +22,12 @@ import akka.pattern.Patterns;
 import akka.routing.SmallestMailboxRouter;
 import akka.util.Timeout;
 
-import com.gravspace.abstractions.Calculation;
-import com.gravspace.abstractions.Page;
+import com.gravspace.abstractions.ICalculation;
+import com.gravspace.abstractions.IPage;
 import com.gravspace.abstractions.PageRoute;
-import com.gravspace.abstractions.PersistanceAccessor;
-import com.gravspace.abstractions.Renderer;
-import com.gravspace.abstractions.Task;
+import com.gravspace.abstractions.IPersistanceAccessor;
+import com.gravspace.abstractions.IRenderer;
+import com.gravspace.abstractions.ITask;
 import com.gravspace.handlers.CalculationHandler;
 import com.gravspace.handlers.PageHandler;
 import com.gravspace.handlers.PersistanceHandler;
@@ -45,57 +47,82 @@ public class CoordinatingActor extends UntypedActor {
 	private HashMap<Layers, ActorRef> routerMap;
 	
 	
-	public CoordinatingActor(){
+	public CoordinatingActor(Properties config){
+		
 		routerMap = new HashMap<Layers, ActorRef>();
-//		routerMap.put(Layers.ROUTING, generateUrlRouter());
-		routerMap.put(Layers.PAGE, generatePageRouter());
-		routerMap.put(Layers.RENDERER, generateRenderRouter());
-		routerMap.put(Layers.TASK, generateTaskRouter());
-		routerMap.put(Layers.CALCULATION, generateCalculationRouter());
-		routerMap.put(Layers.DATA_ACCESS, generateDataRouter());
+		routerMap.put(Layers.PAGE, generatePageRouter(
+				Integer.parseInt((String) config.getProperty("pages", "5"))));
+		routerMap.put(Layers.RENDERER, generateRenderRouter(
+				Integer.parseInt((String) config.getProperty("renders", "5"))));
+		routerMap.put(Layers.TASK, generateTaskRouter(
+				Integer.parseInt((String) config.getProperty("tasks", "5")), 
+				getTaskPackages(config)));
+		routerMap.put(Layers.CALCULATION, generateCalculationRouter(
+				Integer.parseInt((String) config.getProperty("calculations", "5"))));
+		routerMap.put(Layers.DATA_ACCESS, generateDataRouter(
+				Integer.parseInt((String) config.getProperty("dataaccesors", "5")), config));
 	}
 
-//	private ActorRef generateUrlRouter() {
-////		List<ActorRef> routingActor = new ArrayList<ActorRef>();
-////		Map<String, Class<? extends Page>> routers = new HashMap<String, Class<? extends Page>>();
-////		for (int i = 0; i < 5; i++){
-////			routingActor.add(this.getContext().actorOf(Props.create(PageHandler.class, urlMap, routers), "PageHandler-"+i));
-////		}
-////		return this.getContext().actorOf(
-////				  Props.empty().withRouter(SmallestMailboxRouter.create(routingActor)));
-//		return null;
-//	}
 
-	private ActorRef generatePageRouter() {
+
+	private List<String> getTaskPackages(Properties config) {
+		
+		String property = "scan-tasks";
+		List<String> taskPackages = extractPackagesFromPropertyString(config,
+				property);
+		taskPackages.addAll(extractPackagesFromPropertyString(config,
+				"scan-all"));
+		return taskPackages;
+	}
+
+
+
+	private List<String> extractPackagesFromPropertyString(Properties config,
+			String property) {
+		List<String> pkgs = new ArrayList<>();
+		String scanString = config.getProperty(property, "");
+		if (!StringUtils.isEmpty(scanString.trim())){
+			String[] packages = scanString.split(",");
+			for (String pkg: packages){
+				pkgs.add(pkg);
+			}
+		}
+		return pkgs;
+	}
+
+
+
+	private ActorRef generatePageRouter(int actors) {
 		List<ActorRef> pageActors = new ArrayList<ActorRef>();
 		List<PageRoute> routers = new ArrayList<PageRoute>();
 		routers.add(new PageRoute("/test/{value}/", ProfilePage.class));
-		for (int i = 0; i < 5; i++){
+		for (int i = 0; i < actors; i++){
 			pageActors.add(this.getContext().actorOf(Props.create(PageHandler.class, routerMap, routers), "PageHandler-"+i));
 		}
 		return this.getContext().actorOf(
 				  Props.empty().withRouter(SmallestMailboxRouter.create(pageActors)));
 	}
 	
-	private ActorRef generateDataRouter() {
-		Properties p = new Properties();
-		p.setProperty("user", "postgres");
-		p.setProperty("password", "postgres");
-		p.setProperty("url", "jdbc:postgresql://localhost/megapode_test");
+	private ActorRef generateDataRouter(int actors, Properties config) {
+//		
 		List<ActorRef> dataActors = new ArrayList<ActorRef>();
-		Map<String, Class<? extends PersistanceAccessor>> routers = new HashMap<String, Class<? extends PersistanceAccessor>>();
+		Map<String, Class<? extends IPersistanceAccessor>> routers = new HashMap<String, Class<? extends IPersistanceAccessor>>();
 		routers.put("doX", GetProfileData.class);
 		for (int i = 0; i < 5; i++){
-			dataActors.add(this.getContext().actorOf(Props.create(PersistanceHandler.class, routerMap, routers, p), "DataHandler-"+i));
+			dataActors.add(this.getContext().actorOf(Props.create(PersistanceHandler.class, routerMap, routers, config), "DataHandler-"+i));
 		}
 		return this.getContext().actorOf(
 				  Props.empty().withRouter(SmallestMailboxRouter.create(dataActors)));
 	}
 	
-	private ActorRef generateTaskRouter() {
+	private ActorRef generateTaskRouter(int actors, List<String> taskPackages) {
 		List<ActorRef> taskActors = new ArrayList<ActorRef>();
-		Map<String, Class<? extends Task>> routers = new HashMap<String, Class<? extends Task>>();
-		routers.put("simple", ProfileTask.class);
+		Map<String, Class<? extends ITask>> routers = new HashMap<String, Class<? extends ITask>>();
+		List<Class<? extends ITask>> tasks = AnnotationParser.getAnnotatedTasks(taskPackages);
+		for (Class<? extends ITask> task: tasks){
+			log.info(String.format("Registering task: [%s]", task.getCanonicalName()));
+			routers.put(task.getCanonicalName(), task);
+		}
 		for (int i = 0; i < 5; i++){
 			taskActors.add(this.getContext().actorOf(Props.create(TaskHandler.class, routerMap, routers), "TaskHandler-"+i));
 		}
@@ -103,9 +130,9 @@ public class CoordinatingActor extends UntypedActor {
 				  Props.empty().withRouter(SmallestMailboxRouter.create(taskActors)));
 	}
 	
-	private ActorRef generateCalculationRouter() {
+	private ActorRef generateCalculationRouter(int actors) {
 		List<ActorRef> calcActors = new ArrayList<ActorRef>();
-		Map<String, Class<? extends Calculation>> routers = new HashMap<String, Class<? extends Calculation>>();
+		Map<String, Class<? extends ICalculation>> routers = new HashMap<String, Class<? extends ICalculation>>();
 		routers.put("simple", ProfileCalculation.class);
 		for (int i = 0; i < 5; i++){
 			calcActors.add(this.getContext().actorOf(Props.create(CalculationHandler.class, routerMap, routers), "CalculationHandler-"+i));
@@ -114,9 +141,9 @@ public class CoordinatingActor extends UntypedActor {
 				  Props.empty().withRouter(SmallestMailboxRouter.create(calcActors)));
 	}
 	
-	private ActorRef generateRenderRouter() {
+	private ActorRef generateRenderRouter(int actors) {
 		List<ActorRef> renderers = new ArrayList<ActorRef>();
-		Map<String, Class<? extends Renderer>> routers = new HashMap<String, Class<? extends Renderer>>();
+		Map<String, Class<? extends IRenderer>> routers = new HashMap<String, Class<? extends IRenderer>>();
 		routers.put("hi_pode.vm", ProfileRenderer.class);
 		for (int i = 0; i < 5; i++){
 			renderers.add(this.getContext().actorOf(Props.create(RendererHandler.class, routerMap, routers), "RenderHandler-"+i));

@@ -9,16 +9,16 @@ import akka.actor.UntypedActorContext;
 import akka.event.Logging;
 import akka.event.LoggingAdapter;
 
-import com.gravspace.abstractions.Task;
+import com.gravspace.abstractions.ITask;
 import com.gravspace.messages.TaskMessage;
 import com.gravspace.util.Layers;
 
 public class TaskHandler extends UntypedActor {
 	LoggingAdapter log = Logging.getLogger(getContext().system(), this);
-	Map<String, Class<? extends Task>> tasks;
+	Map<String, Class<? extends ITask>> tasks;
 	private Map<Layers, ActorRef> routers;
 	
-	public TaskHandler(Map<Layers, ActorRef> routers, Map<String, Class<? extends Task>> tasks){
+	public TaskHandler(Map<Layers, ActorRef> routers, Map<String, Class<? extends ITask>> tasks){
 		this.tasks = tasks;
 		this.routers = routers;
 	}
@@ -30,11 +30,11 @@ public class TaskHandler extends UntypedActor {
 			TaskMessage message = (TaskMessage)rawMessage;
 
 			String task_name = message.getTaskName();
-			Class<? extends Task> renderer = tasks.get(task_name);
-			Constructor<? extends Task> constr = renderer.getConstructor(Map.class, ActorRef.class, UntypedActorContext.class);
-			Task task = constr.newInstance(routers, getSender(), this.context());
+			Class<? extends ITask> taskClass = tasks.get(task_name);
+			Constructor<? extends ITask> constr = taskClass.getConstructor(Map.class, ActorRef.class, UntypedActorContext.class);
+			ITask task = constr.newInstance(routers, getSender(), this.context());
 			
-			task.act(message.getArgs());
+			task.act(message.getArgs().toArray(new Object[0]));
 		} 
 		else {
 			unhandled(rawMessage);

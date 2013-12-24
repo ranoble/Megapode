@@ -6,12 +6,12 @@ import java.util.Map;
 import akka.actor.ActorRef;
 import akka.actor.UntypedActorContext;
 
-import com.gravspace.abstractions.Calculation;
+import com.gravspace.abstractions.ICalculation;
 import com.gravspace.bases.CalculationBase;
 import com.gravspace.util.Layers;
 
 public class ProfileCalculation extends CalculationBase implements
-		Calculation {
+		ICalculation {
 
 	public ProfileCalculation(Map<Layers, ActorRef> routers,
 			ActorRef coordinatingActor, UntypedActorContext actorContext) {

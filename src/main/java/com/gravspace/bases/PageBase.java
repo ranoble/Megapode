@@ -22,12 +22,12 @@ import akka.pattern.Patterns;
 import akka.util.Timeout;
 
 import com.gravspace.abstractions.ConcurrantCallable;
-import com.gravspace.abstractions.Page;
+import com.gravspace.abstractions.IPage;
 import com.gravspace.messages.TaskMessage;
 import com.gravspace.util.Layers;
 
 
-public abstract class PageBase  extends ConcurrantCallable implements Page {
+public abstract class PageBase  extends ConcurrantCallable implements IPage {
 
 	
 	protected HttpRequest request;
@@ -52,6 +52,7 @@ public abstract class PageBase  extends ConcurrantCallable implements Page {
 	}
 	
 	public void initialise(Object... args){}
+	
 	
 
 }
