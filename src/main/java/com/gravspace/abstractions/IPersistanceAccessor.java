@@ -5,5 +5,8 @@ import java.util.Map;
 
 public interface IPersistanceAccessor {
 	//should throw Exception of some type
-	public Map<String, ?> performTask(Object... args);
+	public Map<String, ?> performTask(Object... args) throws Exception;
+	//getRecord
+	//getRecords
+	//performUpdate
 }

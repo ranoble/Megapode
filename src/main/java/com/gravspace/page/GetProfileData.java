@@ -9,15 +9,17 @@ import org.apache.commons.dbutils.QueryRunner;
 import org.apache.commons.dbutils.ResultSetHandler;
 import org.apache.commons.dbutils.handlers.MapListHandler;
 
+import scala.concurrent.Future;
 import akka.actor.ActorRef;
 import akka.actor.UntypedActorContext;
+import akka.dispatch.Futures;
 
 import com.gravspace.abstractions.IPersistanceAccessor;
 import com.gravspace.bases.PersistanceBase;
 import com.gravspace.util.Layers;
 //http://commons.apache.org/proper/commons-dbutils/examples.html
 public class GetProfileData extends PersistanceBase implements
-		IPersistanceAccessor {
+		IPersistanceAccessor, IProfileDataAccessor {
 
 	public GetProfileData(Map<Layers, ActorRef> routers,
 			ActorRef coordinatingActor, UntypedActorContext actorContext,
@@ -26,17 +28,16 @@ public class GetProfileData extends PersistanceBase implements
 		// TODO Auto-generated constructor stub
 	}
 
-	public Map<String, ?> performTask(Object... args) {
-		return getUserProfile((Integer)args[0]);
-	}
-	
-	private Map<String, ?> getUserProfile(Integer id){
-//		return new HashMap<String>
+//	public Map<String, ?> performTask(Object... args) {
+////		return getUserProfile((Integer)args[0]);
+//	}
+//	
+	public Future<Map<String, Object>> getUserProfile(Integer id){
 		QueryRunner run = new QueryRunner();
 		ResultSetHandler<List<Map<String, Object>>> h = new MapListHandler();
 		try {
 			List<Map<String, Object>> results = run.query(this.connection, "select * from profile where id = "+id, h);
-			return results.get(0);
+			return Futures.successful(results.get(0));
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}

@@ -27,7 +27,7 @@ import com.gravspace.messages.TaskMessage;
 import com.gravspace.util.Layers;
 
 
-public abstract class PageBase  extends ConcurrantCallable implements IPage {
+public abstract class PageBase  extends ComponentBase implements IPage {
 
 	
 	protected HttpRequest request;

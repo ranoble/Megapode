@@ -10,7 +10,11 @@ import java.util.Set;
 
 import org.reflections.Reflections;
 
+import com.gravspace.abstractions.ICalculation;
+import com.gravspace.abstractions.IPersistanceAccessor;
 import com.gravspace.abstractions.ITask;
+import com.gravspace.annotations.Calculation;
+import com.gravspace.annotations.PersistanceAccessor;
 import com.gravspace.annotations.Task;
 
 public class AnnotationParser {
@@ -39,14 +43,39 @@ public class AnnotationParser {
 		for (Class<? extends ITask> item: res){
 			System.out.println(item.getCanonicalName());
 		}
-		//		Reflections reflections = new Reflections("com.gravspace.page");
-//		
-//	    Set<Class<?>> proxies = 
-//	               reflections.getTypesAnnotatedWith(Task.class);
-//	    for (Class<?> task: proxies){
-//			Task annotation = task.getAnnotation(Task.class);
-//	    }
 
+	}
+
+	public static List<Class<? extends ICalculation>> getAnnotatedCalculations(
+			List<String> packages) {
+		List<Class<? extends ICalculation>> calculationSet = new ArrayList<Class<? extends ICalculation>>();
+		for (String pkg: packages){
+			Reflections reflections = new Reflections(packages);
+			Set<Class<?>> tasks = 
+		               reflections.getTypesAnnotatedWith(Calculation.class);
+			for (Class<?> task: tasks){
+				if (ICalculation.class.isAssignableFrom(task)){
+					calculationSet.add((Class<ICalculation>) task);
+				}
+			}
+		}
+		return calculationSet;
+	}
+
+	public static List<Class<? extends IPersistanceAccessor>> getAnnotatedDataAccessors(
+			List<String> packages) {
+		List<Class<? extends IPersistanceAccessor>> calculationSet = new ArrayList<Class<? extends IPersistanceAccessor>>();
+		for (String pkg: packages){
+			Reflections reflections = new Reflections(packages);
+			Set<Class<?>> tasks = 
+		               reflections.getTypesAnnotatedWith(PersistanceAccessor.class);
+			for (Class<?> task: tasks){
+				if (IPersistanceAccessor.class.isAssignableFrom(task)){
+					calculationSet.add((Class<IPersistanceAccessor>) task);
+				}
+			}
+		}
+		return calculationSet;
 	}
 
 }

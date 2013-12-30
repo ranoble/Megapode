@@ -1,4 +1,4 @@
-package com.gravspace.page;
+package com.gravspace.impl.tasks;
 
 import scala.concurrent.Future;
 

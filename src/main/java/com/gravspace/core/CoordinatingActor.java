@@ -58,9 +58,12 @@ public class CoordinatingActor extends UntypedActor {
 				Integer.parseInt((String) config.getProperty("tasks", "5")), 
 				getTaskPackages(config)));
 		routerMap.put(Layers.CALCULATION, generateCalculationRouter(
-				Integer.parseInt((String) config.getProperty("calculations", "5"))));
+				Integer.parseInt((String) config.getProperty("calculations", "5")),
+				getCalculationPackages(config)));
 		routerMap.put(Layers.DATA_ACCESS, generateDataRouter(
-				Integer.parseInt((String) config.getProperty("dataaccesors", "5")), config));
+				Integer.parseInt((String) config.getProperty("dataaccesors", "5")), 
+				config,
+				getAccessorPackages(config)));
 	}
 
 
@@ -68,14 +71,28 @@ public class CoordinatingActor extends UntypedActor {
 	private List<String> getTaskPackages(Properties config) {
 		
 		String property = "scan-tasks";
-		List<String> taskPackages = extractPackagesFromPropertyString(config,
-				property);
-		taskPackages.addAll(extractPackagesFromPropertyString(config,
-				"scan-all"));
-		return taskPackages;
+		return getAnnotatedPackages(config, property);
+	}
+	
+	private List<String> getCalculationPackages(Properties config) {
+		
+		String property = "scan-calculations";
+		return getAnnotatedPackages(config, property);
 	}
 
+	private List<String> getAccessorPackages(Properties config) {
+		
+		String property = "scan-dataaccessors";
+		return getAnnotatedPackages(config, property);
+	}
 
+	private List<String> getAnnotatedPackages(Properties config, String property) {
+		List<String> pkgs = extractPackagesFromPropertyString(config,
+				property);
+		pkgs.addAll(extractPackagesFromPropertyString(config,
+				"scan-all"));
+		return pkgs;
+	}
 
 	private List<String> extractPackagesFromPropertyString(Properties config,
 			String property) {
@@ -90,8 +107,6 @@ public class CoordinatingActor extends UntypedActor {
 		return pkgs;
 	}
 
-
-
 	private ActorRef generatePageRouter(int actors) {
 		List<ActorRef> pageActors = new ArrayList<ActorRef>();
 		List<PageRoute> routers = new ArrayList<PageRoute>();
@@ -103,12 +118,16 @@ public class CoordinatingActor extends UntypedActor {
 				  Props.empty().withRouter(SmallestMailboxRouter.create(pageActors)));
 	}
 	
-	private ActorRef generateDataRouter(int actors, Properties config) {
+	private ActorRef generateDataRouter(int actors, Properties config, List<String> dataPackages) {
 //		
 		List<ActorRef> dataActors = new ArrayList<ActorRef>();
 		Map<String, Class<? extends IPersistanceAccessor>> routers = new HashMap<String, Class<? extends IPersistanceAccessor>>();
-		routers.put("doX", GetProfileData.class);
-		for (int i = 0; i < 5; i++){
+		List<Class<? extends IPersistanceAccessor>> accessors = AnnotationParser.getAnnotatedDataAccessors(dataPackages);
+		for (Class<? extends IPersistanceAccessor> accessor: accessors){
+			log.info(String.format("Registering accessor: [%s]", accessor.getCanonicalName()));
+			routers.put(accessor.getCanonicalName(), accessor);
+		}
+		for (int i = 0; i < actors; i++){
 			dataActors.add(this.getContext().actorOf(Props.create(PersistanceHandler.class, routerMap, routers, config), "DataHandler-"+i));
 		}
 		return this.getContext().actorOf(
@@ -123,18 +142,22 @@ public class CoordinatingActor extends UntypedActor {
 			log.info(String.format("Registering task: [%s]", task.getCanonicalName()));
 			routers.put(task.getCanonicalName(), task);
 		}
-		for (int i = 0; i < 5; i++){
+		for (int i = 0; i < actors; i++){
 			taskActors.add(this.getContext().actorOf(Props.create(TaskHandler.class, routerMap, routers), "TaskHandler-"+i));
 		}
 		return this.getContext().actorOf(
 				  Props.empty().withRouter(SmallestMailboxRouter.create(taskActors)));
 	}
 	
-	private ActorRef generateCalculationRouter(int actors) {
+	private ActorRef generateCalculationRouter(int actors, List<String> calcPackages) {
 		List<ActorRef> calcActors = new ArrayList<ActorRef>();
 		Map<String, Class<? extends ICalculation>> routers = new HashMap<String, Class<? extends ICalculation>>();
-		routers.put("simple", ProfileCalculation.class);
-		for (int i = 0; i < 5; i++){
+		List<Class<? extends ICalculation>> calculations = AnnotationParser.getAnnotatedCalculations(calcPackages);
+		for (Class<? extends ICalculation> calculation: calculations){
+			log.info(String.format("Registering calculation: [%s]", calculation.getCanonicalName()));
+			routers.put(calculation.getCanonicalName(), calculation);
+		}
+		for (int i = 0; i < actors; i++){
 			calcActors.add(this.getContext().actorOf(Props.create(CalculationHandler.class, routerMap, routers), "CalculationHandler-"+i));
 		}
 		return this.getContext().actorOf(

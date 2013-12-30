@@ -11,11 +11,12 @@ import akka.actor.ActorRef;
 import akka.actor.UntypedActorContext;
 
 import com.gravspace.bases.PageBase;
-import com.gravspace.impl.tasks.ProfileTasks;
+import com.gravspace.impl.tasks.IProfileTask;
 import com.gravspace.messages.CalculationMessage;
 import com.gravspace.messages.PersistanceMessage;
 import com.gravspace.messages.RenderMessage;
 import com.gravspace.messages.TaskMessage;
+import com.gravspace.proxy.DataAccessorProxyFactory;
 import com.gravspace.proxy.TaskProxyFactory;
 import com.gravspace.util.Layers;
 
@@ -30,15 +31,17 @@ public class ProfilePage extends PageBase {
 	private Future<Object> profileData;
 	private Future<Object> calculationResult;
 
-	
+	Map<String, Object> profileContext;
 	
 
 	public void collect() {
-		ProfileTasks task = TaskProxyFactory.getProxy(ProfileTasks.class, ProfileTask.class, this);
+		IProfileTask task = TaskProxyFactory.getProxy(IProfileTask.class, ProfileTask.class, this);
 //		ProfileTasks task2 = TaskProxyFactory.getProxy(ProfileTask.class, this);
 		task.logTask("Richard!");
 //		call(new TaskMessage("simple", Arrays.asList(new Integer[]{1, 2})));
-		profileData = ask(new PersistanceMessage("doX", Arrays.asList(new Integer[]{1})));
+		IProfileDataAccessor dp = DataAccessorProxyFactory.getProxy(IProfileDataAccessor.class, GetProfileData.class, this);
+		set("profileContext", dp.getUserProfile(1));//ask(new PersistanceMessage("doX", Arrays.asList(new Integer[]{1}))));
+//		set("profileContext", profileData);
 		log.info("collected");
 	}
 

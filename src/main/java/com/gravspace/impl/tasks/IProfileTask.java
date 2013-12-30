@@ -1,5 +1,5 @@
 package com.gravspace.impl.tasks;
 
-public interface ProfileTasks {
+public interface IProfileTask {
 	void logTask(String user);
 }
