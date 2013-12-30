@@ -3,6 +3,8 @@ package com.gravspace.handlers;
 import java.lang.reflect.Constructor;
 import java.util.Map;
 
+import scala.concurrent.Future;
+
 import akka.actor.ActorRef;
 import akka.actor.UntypedActor;
 import akka.actor.UntypedActorContext;
@@ -21,6 +23,9 @@ public class CalculationHandler extends UntypedActor {
 	public CalculationHandler(Map<Layers, ActorRef> routers, Map<String, Class<? extends ICalculation>> calculations){
 		this.calculations = calculations;
 		this.routers = routers;
+		for (String calc: calculations.keySet()){
+			log.error(calc);
+		}
 	}
 
 	@Override
@@ -30,12 +35,15 @@ public class CalculationHandler extends UntypedActor {
 			CalculationMessage message = (CalculationMessage)rawMessage;
 
 			String task_name = message.getTaskName();
+			log.info("CalculationHandler requested method task_name: "+task_name);
 			Class<? extends ICalculation> calculationClass = calculations.get(task_name);
 			Constructor<? extends ICalculation> constr = calculationClass.getConstructor(Map.class, ActorRef.class, UntypedActorContext.class);
 			ICalculation calculation = constr.newInstance(routers, getSender(), this.context());
 			
-			Object result = calculation.calculate(message.getArgs());
-			getSender().tell(result, getSelf());
+			Future<Object> result = (Future<Object>) calculation.calculate(message.getArgs().toArray(new Object[0]));
+			//Pattern.
+			akka.pattern.Patterns.pipe(result, this.getContext().dispatcher()).to(getSender());
+			//getSender().tell(result, getSelf());
 		} 
 		else {
 			unhandled(rawMessage);

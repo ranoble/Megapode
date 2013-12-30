@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
+import java.util.logging.Logger;
 
 import com.gravspace.messages.CalculationMessage;
 import com.gravspace.messages.ComponentMessage;
@@ -27,20 +28,29 @@ import akka.pattern.Patterns;
 import akka.util.Timeout;
 
 public class ConcurrantCallable {
-	protected LoggingAdapter log = null;
+	private LoggingAdapter log = null;
 	protected ActorRef coordinatingActor;
 	protected UntypedActorContext actorContext;
 	protected List<Future<Object>> taskList;
 	protected Set<Promise<Object>> awaitListeners;
 	protected Map<Layers, ActorRef> routers;
 	
+
+	
 	public ConcurrantCallable(final Map<Layers, ActorRef> routers, final ActorRef coordinatingActor, final UntypedActorContext actorContext){
 		this.coordinatingActor = coordinatingActor;
-		this.actorContext = actorContext;
+		setActorContext(actorContext);
 		this.routers = routers;
-		log = Logging.getLogger(actorContext.system(), this);
+		
 		taskList = Collections.synchronizedList(new ArrayList<Future<Object>>());
 		awaitListeners = new CopyOnWriteArraySet<Promise<Object>>();
+	}
+	
+	public LoggingAdapter getLogger(){
+		if (log == null){
+			log = Logging.getLogger(getActorContext().system(), this);
+		}
+		return log;
 	}
 	
 	public Future<Object> await(){
@@ -53,47 +63,47 @@ public class ConcurrantCallable {
 	}
 	
 	public Future<Object> ask(RenderMessage message){
-		log.info("Asking");
+		getLogger().info("Asking");
 		Timeout timeout = new Timeout(Duration.create(1, "minute"));
 		final Future<Object> future = Patterns.ask(routers.get(Layers.RENDERER), message, timeout);
-		log.info("Asking"+future.toString());
+		getLogger().info("Asking"+future.toString());
 		taskList.add(future);
 		monitorForCompletion(future);
 		return future;
 	}
 	
 	public Future<Object> ask(ComponentMessage message){
-		log.info("Asking");
+		getLogger().info("Asking");
 		Timeout timeout = new Timeout(Duration.create(1, "minute"));
 		final Future<Object> future = Patterns.ask(routers.get(Layers.COMPONENT), message, timeout);
-		log.info("Asking"+future.toString());
+		getLogger().info("Asking"+future.toString());
 		taskList.add(future);
 		monitorForCompletion(future);
 		return future;
 	}
 	
 	public Future<Object> ask(PersistanceMessage message){
-		log.info("Asking");
+		getLogger().info("Asking");
 		Timeout timeout = new Timeout(Duration.create(1, "minute"));
 		final Future<Object> future = Patterns.ask(routers.get(Layers.DATA_ACCESS), message, timeout);
-		log.info("Asking"+future.toString());
+		getLogger().info("Asking"+future.toString());
 		taskList.add(future);
 		monitorForCompletion(future);
 		return future;
 	}
 	
 	public Future<Object> ask(CalculationMessage message){
-		log.info("Asking");
+		getLogger().info("Asking");
 		Timeout timeout = new Timeout(Duration.create(1, "minute"));
 		final Future<Object> future = Patterns.ask(routers.get(Layers.CALCULATION), message, timeout);
-		log.info("Asking"+future.toString());
+		getLogger().info("Asking"+future.toString());
 		taskList.add(future);
 		monitorForCompletion(future);
 		return future;
 	}
 	
 	public void call(TaskMessage message){
-		log.info("Calling");
+		getLogger().info("Calling");
 		routers.get(Layers.TASK).tell(message, ActorRef.noSender());
 	}
 
@@ -127,5 +137,9 @@ public class ConcurrantCallable {
 
 	public UntypedActorContext getActorContext() {
 		return actorContext;
+	}
+	
+	public void setActorContext(UntypedActorContext context) {
+		actorContext = context;
 	}
 }

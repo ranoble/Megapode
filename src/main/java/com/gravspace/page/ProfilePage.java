@@ -42,23 +42,23 @@ public class ProfilePage extends PageBase {
 		IProfileDataAccessor dp = DataAccessorProxyFactory.getProxy(IProfileDataAccessor.class, GetProfileData.class, this);
 		set("profileContext", dp.getUserProfile(1));//ask(new PersistanceMessage("doX", Arrays.asList(new Integer[]{1}))));
 //		set("profileContext", profileData);
-		log.info("collected");
+		getLogger().info("collected");
 	}
 
 	public void process() {
 		// TODO Auto-generated method stub
 		calculationResult = ask(new CalculationMessage("simple", Arrays.asList(new Integer[]{1, 2})));
-		log.info("processed");
+		getLogger().info("processed");
 	}
 
 	public String render() throws Exception {
 		
-		log.info("attempting to load");
+		getLogger().info("attempting to load");
 		Map<String, Object> context = (Map<String, Object>) Await.result(profileData, Duration.create(1, "minute"));
 		Future<Object> future = ask(new RenderMessage("hi_pode.vm", context));
-		log.info("waiting...");
+		getLogger().info("waiting...");
 		Object result = Await.result(future, Duration.create(1, "minute"));
-		log.info("asdasddass"+(String) result);
+		getLogger().info("asdasddass"+(String) result);
 		return (String) result;
 	}
 

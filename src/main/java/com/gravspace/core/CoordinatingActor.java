@@ -35,6 +35,8 @@ import com.gravspace.handlers.RendererHandler;
 import com.gravspace.handlers.TaskHandler;
 import com.gravspace.messages.RenderMessage;
 import com.gravspace.messages.RequestMessage;
+import com.gravspace.messages.RouterMessage;
+import com.gravspace.messages.RouterResponseMessage;
 import com.gravspace.page.GetProfileData;
 import com.gravspace.page.ProfileCalculation;
 import com.gravspace.page.ProfilePage;
@@ -44,7 +46,7 @@ import com.gravspace.util.Layers;
 
 public class CoordinatingActor extends UntypedActor {
 	LoggingAdapter log = Logging.getLogger(getContext().system(), this);
-	private HashMap<Layers, ActorRef> routerMap;
+	protected HashMap<Layers, ActorRef> routerMap;
 	
 	
 	public CoordinatingActor(Properties config){
@@ -118,8 +120,7 @@ public class CoordinatingActor extends UntypedActor {
 				  Props.empty().withRouter(SmallestMailboxRouter.create(pageActors)));
 	}
 	
-	private ActorRef generateDataRouter(int actors, Properties config, List<String> dataPackages) {
-//		
+	private ActorRef generateDataRouter(int actors, Properties config, List<String> dataPackages) {	
 		List<ActorRef> dataActors = new ArrayList<ActorRef>();
 		Map<String, Class<? extends IPersistanceAccessor>> routers = new HashMap<String, Class<? extends IPersistanceAccessor>>();
 		List<Class<? extends IPersistanceAccessor>> accessors = AnnotationParser.getAnnotatedDataAccessors(dataPackages);

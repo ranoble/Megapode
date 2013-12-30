@@ -25,6 +25,8 @@ public class TaskProxyFactory {
 		@Override
 		public Object invoke(Object proxy, Method method, Object[] args)
 				throws Throwable {
+			if (args == null)
+				args = new Object[]{};
 			List<Object> task_args = new ArrayList<>();
 			task_args.add(method.getName());
 			task_args.addAll(Arrays.asList(args));

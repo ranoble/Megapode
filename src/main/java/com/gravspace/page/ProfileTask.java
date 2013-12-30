@@ -10,7 +10,7 @@ import com.gravspace.annotations.Task;
 import com.gravspace.bases.TaskBase;
 import com.gravspace.impl.tasks.IProfileTask;
 import com.gravspace.util.Layers;
-//@Page(path="/user/<user>")
+
 @Task
 public class ProfileTask extends TaskBase implements ITask, IProfileTask {
 
@@ -22,7 +22,7 @@ public class ProfileTask extends TaskBase implements ITask, IProfileTask {
 
 	@Override
 	public void logTask(String user) {
-		log.info(String.format("User [%s] accessed page", user)); 
+		getLogger().info(String.format("User [%s] accessed page", user)); 
 		
 	}
 
