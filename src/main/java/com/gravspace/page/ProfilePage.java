@@ -39,7 +39,7 @@ public class ProfilePage extends PageBase {
 //		ProfileTasks task2 = TaskProxyFactory.getProxy(ProfileTask.class, this);
 		task.logTask("Richard!");
 //		call(new TaskMessage("simple", Arrays.asList(new Integer[]{1, 2})));
-		IProfileDataAccessor dp = DataAccessorProxyFactory.getProxy(IProfileDataAccessor.class, GetProfileData.class, this);
+		IProfileDataAccessor dp = DataAccessorProxyFactory.getProxy(IProfileDataAccessor.class, ProfileDataAccessor.class, this);
 		set("profileContext", dp.getUserProfile(1));//ask(new PersistanceMessage("doX", Arrays.asList(new Integer[]{1}))));
 //		set("profileContext", profileData);
 		getLogger().info("collected");

@@ -15,13 +15,16 @@ import akka.actor.UntypedActorContext;
 import akka.dispatch.Futures;
 
 import com.gravspace.abstractions.IPersistanceAccessor;
+import com.gravspace.annotations.PersistanceAccessor;
 import com.gravspace.bases.PersistanceBase;
 import com.gravspace.util.Layers;
 //http://commons.apache.org/proper/commons-dbutils/examples.html
-public class GetProfileData extends PersistanceBase implements
+
+@PersistanceAccessor
+public class ProfileDataAccessor extends PersistanceBase implements
 		IPersistanceAccessor, IProfileDataAccessor {
 
-	public GetProfileData(Map<Layers, ActorRef> routers,
+	public ProfileDataAccessor(Map<Layers, ActorRef> routers,
 			ActorRef coordinatingActor, UntypedActorContext actorContext,
 			Connection connection) {
 		super(routers, coordinatingActor, actorContext, connection);

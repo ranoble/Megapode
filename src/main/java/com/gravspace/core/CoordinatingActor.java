@@ -37,7 +37,7 @@ import com.gravspace.messages.RenderMessage;
 import com.gravspace.messages.RequestMessage;
 import com.gravspace.messages.RouterMessage;
 import com.gravspace.messages.RouterResponseMessage;
-import com.gravspace.page.GetProfileData;
+import com.gravspace.page.ProfileDataAccessor;
 import com.gravspace.page.ProfileCalculation;
 import com.gravspace.page.ProfilePage;
 import com.gravspace.page.ProfileRenderer;

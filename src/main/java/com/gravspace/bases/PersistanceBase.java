@@ -65,14 +65,14 @@ public abstract class PersistanceBase extends ConcurrantCallable implements
 		return statement;
 	}
 	
-	public Map<String, ?> performTask(Object... args) throws Exception {
+	public Object performTask(Object... args) throws Exception {
 		List<Object> arguments = new ArrayList<>(Arrays.asList(args));
 		String methodName = (String) arguments.remove(0);
 		List<Class<?>> types = TypeUtils.getListTypes(arguments);
 		try {
 			Method method = this.getClass().getMethod(methodName, types.toArray(new Class[0]));
 			//Do I do it here?
-			return (Map<String, ?>) method.invoke(this, arguments.toArray(new Object[0]));
+			return method.invoke(this, arguments.toArray(new Object[0]));
 		} catch (NoSuchMethodException | SecurityException | IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
 			// TODO Auto-generated catch block
 			throw e;

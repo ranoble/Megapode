@@ -7,6 +7,8 @@ import java.sql.SQLException;
 import java.util.Map;
 import java.util.Properties;
 
+import scala.concurrent.Future;
+
 import akka.actor.ActorRef;
 import akka.actor.UntypedActor;
 import akka.actor.UntypedActorContext;
@@ -56,7 +58,7 @@ public class PersistanceHandler extends UntypedActor {
 
 	@Override
 	public void onReceive(Object rawMessage) throws Exception {
-		log.info("CalculationHandler got: "+rawMessage.getClass().getCanonicalName());
+		log.info("PersistanceHandler got: "+rawMessage.getClass().getCanonicalName());
 		if (rawMessage instanceof PersistanceMessage){
 			PersistanceMessage message = (PersistanceMessage)rawMessage;
 
@@ -64,8 +66,12 @@ public class PersistanceHandler extends UntypedActor {
 			Class<? extends IPersistanceAccessor> calculationClass = persistanceTasks.get(task_name);
 			Constructor<? extends IPersistanceAccessor> constr = calculationClass.getConstructor(Map.class, ActorRef.class, UntypedActorContext.class, Connection.class);
 			IPersistanceAccessor persistor = constr.newInstance(routers, getSender(), this.context(), this.connection);
-			Map<String, ?> result = persistor.performTask(message.getArgs().toArray());
-			getSender().tell(result, getSelf());
+			
+			Future<Object> result = (Future<Object>) persistor.performTask(message.getArgs().toArray(new Object[0]));//.calculate(message.getArgs().toArray(new Object[0]));
+			//Pattern.
+			akka.pattern.Patterns.pipe(result, this.getContext().dispatcher()).to(getSender());
+			//			Map<String, ?> result = persistor.performTask(message.getArgs().toArray());
+//			getSender().tell(result, getSelf());
 		} 
 		else {
 			unhandled(rawMessage);
