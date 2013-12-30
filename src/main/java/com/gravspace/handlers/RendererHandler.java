@@ -3,6 +3,8 @@ package com.gravspace.handlers;
 import java.lang.reflect.Constructor;
 import java.util.Map;
 
+import scala.concurrent.Future;
+
 import akka.actor.ActorRef;
 import akka.actor.UntypedActor;
 import akka.actor.UntypedActorContext;
@@ -29,17 +31,22 @@ public class RendererHandler extends UntypedActor {
 		if (rawMessage instanceof RenderMessage){
 			RenderMessage message = (RenderMessage)rawMessage;
 			//final ActorRef coordinatingActor, final UntypedActorContext actorContext
-			String template = message.getTemplateName();
 			for (String key: renderers.keySet()){
 				log.info(key);
 			}
-			Class<? extends IRenderer> renderer = renderers.get(template);
+			Class<? extends IRenderer> renderer = renderers.get(message.getRenderer());
 			Constructor<? extends IRenderer> constr = renderer.getConstructor(Map.class, ActorRef.class, UntypedActorContext.class);
 			IRenderer page = constr.newInstance(routers, getSender(), this.context());
+			Future<String> rendered = null;
+			if (message.getTemplateName() != null){
+				rendered = page.render(message.getTemplateName(), message.getContext());
+			} else {
+				rendered = page.render(message.getContext());
+			}
 			
-			String rendered = page.render(message.getContext());
-			log.info("Rendered: "+rendered);
-			getSender().tell(rendered, getSelf());
+			//log.info("Rendered: "+rendered);
+			akka.pattern.Patterns.pipe(rendered, this.getContext().dispatcher()).to(getSender());
+			//getSender().tell(rendered, getSelf());
 		} 
 		else {
 			unhandled(rawMessage);

@@ -1,4 +1,5 @@
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
@@ -21,14 +22,19 @@ import akka.testkit.JavaTestKit;
 import akka.util.Timeout;
 
 import com.gravspace.abstractions.ConcurrantCallable;
+import com.gravspace.abstractions.IRenderer;
+import com.gravspace.abstractions.IWidget;
 import com.gravspace.impl.tasks.IProfileCalculation;
 import com.gravspace.messages.RouterMessage;
 import com.gravspace.messages.RouterResponseMessage;
 import com.gravspace.page.IProfileDataAccessor;
 import com.gravspace.page.ProfileCalculation;
 import com.gravspace.page.ProfileDataAccessor;
+import com.gravspace.page.ProfileWidget;
 import com.gravspace.proxy.CalculationProxyFactory;
 import com.gravspace.proxy.DataAccessorProxyFactory;
+import com.gravspace.proxy.RendererProxyFactory;
+import com.gravspace.proxy.WidgetProxyFactory;
 
 import core.CallableContainer;
 import core.GetCallable;
@@ -101,6 +107,37 @@ public class BaseTests{
 				
 				Map<String, Object> res = (Map<String, Object>) Await.result(result, Duration.create(1, "minute"));
 				Assert.assertEquals("mega.pode@bigfootbirdie.com", res.get("email"));
+			}
+		};
+	}
+	
+	@Test
+	public void testRenderer() throws Exception {
+		new JavaTestKit(system) {
+			{
+				
+				
+				IRenderer data = RendererProxyFactory.getDefaultRender(cc.getCallable());
+				Map<String, String> context = new HashMap<>();
+				context.put("context_var", "Megapode");
+				Future<String> result = data.render("test_template.vm", context);
+				
+				String res = (String) Await.result(result, Duration.create(1, "minute"));
+				Assert.assertEquals("Hi Megapode", res);
+			}
+		};
+	}
+	
+	@Test
+	public void testWidget() throws Exception {
+		new JavaTestKit(system) {
+			{
+				IWidget data = WidgetProxyFactory.getProxy(ProfileWidget.class, cc.getCallable());//getDefaultRender(cc.getCallable());
+
+				Future<String> result = data.build(1, 2, 3);
+				
+				String res = (String) Await.result(result, Duration.create(1, "minute"));
+				Assert.assertEquals("Hi Component", res);
 			}
 		};
 	}

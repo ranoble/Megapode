@@ -9,13 +9,17 @@ import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.protocol.HttpContext;
 
+import scala.concurrent.Future;
+
 import akka.actor.ActorRef;
 import akka.actor.Status;
 import akka.actor.UntypedActor;
 import akka.actor.UntypedActorContext;
+import akka.dispatch.Futures;
 import akka.event.Logging;
 import akka.event.LoggingAdapter;
 
+import com.gravspace.abstractions.IComponent;
 import com.gravspace.abstractions.IPage;
 import com.gravspace.abstractions.PageRoute;
 import com.gravspace.exceptions.PageNotFoundException;
@@ -58,26 +62,27 @@ public class PageHandler extends UntypedActor {
 			RequestMessage message = (RequestMessage)rawMessage;
 			HttpRequest request = message.getPayload().getRequest();
 			String uri = request.getRequestLine().getUri();
+			Future<String> rendered = null;
 			try {
 				IPage page = loadPage(uri, request, message.getPayload().getResponse(), message.getPayload().getContext());
-				String rendered = processPage(page);
-				getSender().tell(rendered, getSelf());
+				rendered = build(page);
 			} catch (PageNotFoundException | InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException | SecurityException e){
-//				log.error(String.format("Error in handelling [%s]", e.getClass().getCanonicalName()), e);
-				getSender().tell(new Status.Failure(e), getSelf());
+				log.error(String.format("Error in handelling [%s]", e.getClass().getCanonicalName()), e);
+				rendered = Futures.failed(e);
 			}
-			
+			akka.pattern.Patterns.pipe(rendered, this.getContext().dispatcher()).to(getSender());
 		} 
 		else {
 			unhandled(rawMessage);
 		}
 	}
-
-	private String processPage(IPage page) throws Exception {
-		page.collect();
-		page.await();
-		page.process();
-		String rendered = page.render();
+	
+	protected Future<String> build(IPage component) throws Exception {
+		component.collect();
+		component.await();
+		component.process();
+		component.await();
+		Future<String> rendered = component.render();
 		return rendered;
 	}
 

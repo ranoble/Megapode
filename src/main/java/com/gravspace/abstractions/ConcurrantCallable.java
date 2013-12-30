@@ -107,11 +107,14 @@ public class ConcurrantCallable {
 		routers.get(Layers.TASK).tell(message, ActorRef.noSender());
 	}
 
-	private void monitorForCompletion(final Future<Object> future) {
+	protected void monitorForCompletion(final Future<Object> future) {
+		//this should be for oncompletes
 		future.onSuccess(new OnSuccess<Object>() {
 			@Override
 			public void onSuccess(Object response) throws Throwable {
+				getLogger().info("Task Complete, Monitor");
 				taskList.remove(future);
+
 				notifyWaiters(future);
 			}
 		}, getActorContext().dispatcher());

@@ -2,9 +2,14 @@ package com.gravspace.handlers;
 
 import java.util.Map;
 
+import scala.concurrent.Await;
+import scala.concurrent.Future;
+import scala.concurrent.duration.Duration;
+
 import akka.actor.ActorRef;
 import akka.actor.UntypedActor;
 import akka.actor.UntypedActorContext;
+import akka.dispatch.Futures;
 import akka.event.Logging;
 import akka.event.LoggingAdapter;
 
@@ -28,19 +33,31 @@ public class ComponentHandler extends UntypedActor {
 		log.info("Page got: "+rawMessage.getClass().getCanonicalName());
 		if (rawMessage instanceof ComponentMessage){
 			log.info("Handelling Request");
-			ComponentMessage message = (ComponentMessage)rawMessage;
-			IComponent component = components.get(message.getRouteToken()).getConstructor(Map.class, ActorRef.class, UntypedActorContext.class).newInstance(routers, getSender(), this.context());
-			component.initialise(message.getParameters());
-			component.collect();
-			component.await();
-			component.process();
-			String rendered = component.render();
-			getSender().tell(rendered, getSelf());
-			
+			Future<String> rendered = null;
+			try {
+				ComponentMessage message = (ComponentMessage)rawMessage;
+				IComponent component = components.get(message.getRouteToken()).getConstructor(Map.class, ActorRef.class, UntypedActorContext.class).newInstance(routers, getSender(), this.context());
+				component.initialise(message.getParameters());
+				rendered = build(component);
+				
+			} catch (Exception e){
+				rendered = Futures.failed(e);
+			}
+			akka.pattern.Patterns.pipe(rendered, this.getContext().dispatcher()).to(getSender());
 		} 
 		else {
 			unhandled(rawMessage);
 		}
+	}
+
+	protected Future<String> build(IComponent component) throws Exception {
+		component.collect();
+		Await.ready(component.await(), Duration.create(1, "minute"));
+//		Thread.sleep(100);
+		component.process();
+		Await.ready(component.await(), Duration.create(1, "minute"));
+		Future<String> rendered = component.render();
+		return rendered;
 	}
 
 }

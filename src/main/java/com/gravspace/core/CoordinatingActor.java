@@ -23,12 +23,14 @@ import akka.routing.SmallestMailboxRouter;
 import akka.util.Timeout;
 
 import com.gravspace.abstractions.ICalculation;
+import com.gravspace.abstractions.IComponent;
 import com.gravspace.abstractions.IPage;
 import com.gravspace.abstractions.PageRoute;
 import com.gravspace.abstractions.IPersistanceAccessor;
 import com.gravspace.abstractions.IRenderer;
 import com.gravspace.abstractions.ITask;
 import com.gravspace.handlers.CalculationHandler;
+import com.gravspace.handlers.ComponentHandler;
 import com.gravspace.handlers.PageHandler;
 import com.gravspace.handlers.PersistanceHandler;
 import com.gravspace.handlers.RendererHandler;
@@ -53,9 +55,14 @@ public class CoordinatingActor extends UntypedActor {
 		
 		routerMap = new HashMap<Layers, ActorRef>();
 		routerMap.put(Layers.PAGE, generatePageRouter(
-				Integer.parseInt((String) config.getProperty("pages", "5"))));
+				Integer.parseInt((String) config.getProperty("pages", "5")),
+				getPagePackages(config)));
+		routerMap.put(Layers.COMPONENT, generateComponentRouter(
+				Integer.parseInt((String) config.getProperty("widgets", "5")),
+				getWidgetPackages(config)));
 		routerMap.put(Layers.RENDERER, generateRenderRouter(
-				Integer.parseInt((String) config.getProperty("renders", "5"))));
+				Integer.parseInt((String) config.getProperty("renders", "5")),
+				getRenderPackages(config)));
 		routerMap.put(Layers.TASK, generateTaskRouter(
 				Integer.parseInt((String) config.getProperty("tasks", "5")), 
 				getTaskPackages(config)));
@@ -71,8 +78,12 @@ public class CoordinatingActor extends UntypedActor {
 
 
 	private List<String> getTaskPackages(Properties config) {
-		
 		String property = "scan-tasks";
+		return getAnnotatedPackages(config, property);
+	}
+	
+	private List<String> getPagePackages(Properties config) {
+		String property = "scan-pages";
 		return getAnnotatedPackages(config, property);
 	}
 	
@@ -87,6 +98,19 @@ public class CoordinatingActor extends UntypedActor {
 		String property = "scan-dataaccessors";
 		return getAnnotatedPackages(config, property);
 	}
+	
+	private List<String> getRenderPackages(Properties config) {
+		
+		String property = "scan-renderers";
+		return getAnnotatedPackages(config, property);
+	}
+	
+	private List<String> getWidgetPackages(Properties config) {
+		String property = "scan-widgets";
+		return getAnnotatedPackages(config, property);
+	}
+	
+	
 
 	private List<String> getAnnotatedPackages(Properties config, String property) {
 		List<String> pkgs = extractPackagesFromPropertyString(config,
@@ -109,10 +133,12 @@ public class CoordinatingActor extends UntypedActor {
 		return pkgs;
 	}
 
-	private ActorRef generatePageRouter(int actors) {
+	private ActorRef generatePageRouter(int actors, List<String> list) {
 		List<ActorRef> pageActors = new ArrayList<ActorRef>();
-		List<PageRoute> routers = new ArrayList<PageRoute>();
-		routers.add(new PageRoute("/test/{value}/", ProfilePage.class));
+//		List<PageRoute> routers = new ArrayList<PageRoute>();
+		List<PageRoute> routers = AnnotationParser.getAnnotatedPages(list);
+		
+//		routers.add(new PageRoute("/test/{value}/", ProfilePage.class));
 		for (int i = 0; i < actors; i++){
 			pageActors.add(this.getContext().actorOf(Props.create(PageHandler.class, routerMap, routers), "PageHandler-"+i));
 		}
@@ -165,14 +191,38 @@ public class CoordinatingActor extends UntypedActor {
 				  Props.empty().withRouter(SmallestMailboxRouter.create(calcActors)));
 	}
 	
-	private ActorRef generateRenderRouter(int actors) {
+	private ActorRef generateComponentRouter(int actors, List<String> calcPackages) {
+		List<ActorRef> widgetActors = new ArrayList<ActorRef>();
+		Map<String, Class<? extends IComponent>> routers = new HashMap<String, Class<? extends IComponent>>();
+		List<Class<? extends IComponent>> widgets = AnnotationParser.getAnnotatedWidgets(calcPackages);
+		for (Class<? extends IComponent> widget: widgets){
+			log.info(String.format("Registering widget: [%s]", widget.getCanonicalName()));
+			routers.put(widget.getCanonicalName(), widget);
+		}
+		for (int i = 0; i < actors; i++){
+			widgetActors.add(this.getContext().actorOf(Props.create(ComponentHandler.class, routerMap, routers), "WidgetHandler-"+i));
+		}
+		return this.getContext().actorOf(
+				  Props.empty().withRouter(SmallestMailboxRouter.create(widgetActors)));
+	}
+	
+	
+	private ActorRef generateRenderRouter(int actors, List<String> renderPackages) {
 		List<ActorRef> renderers = new ArrayList<ActorRef>();
-		Map<String, Class<? extends IRenderer>> routers = new HashMap<String, Class<? extends IRenderer>>();
-		routers.put("hi_pode.vm", ProfileRenderer.class);
-		for (int i = 0; i < 5; i++){
+		
+		Map<String, Class<? extends IRenderer>> routers  = new HashMap<String, Class<? extends IRenderer>>();
+				//
+//		routers.put("hi_pode.vm", ProfileRenderer.class);
+		
+		List<Class<? extends IRenderer>> renders = AnnotationParser.getAnnotatedRenderers(renderPackages);
+		for (Class<? extends IRenderer> renderer: renders){
+			log.info(String.format("Registering renderer: [%s]", renderer.getCanonicalName()));
+			routers.put(renderer.getCanonicalName(), renderer);
+		}
+		for (int i = 0; i < actors; i++){
 			renderers.add(this.getContext().actorOf(Props.create(RendererHandler.class, routerMap, routers), "RenderHandler-"+i));
 		}
-		return  this.getContext().actorOf(
+		return this.getContext().actorOf(
 				  Props.empty().withRouter(SmallestMailboxRouter.create(renderers)));
 	}
 	
