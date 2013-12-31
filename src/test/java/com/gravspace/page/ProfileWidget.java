@@ -3,6 +3,7 @@ package com.gravspace.page;
 import java.util.Map;
 
 import scala.concurrent.Future;
+import scala.concurrent.Promise;
 
 import akka.actor.ActorRef;
 import akka.actor.UntypedActorContext;
@@ -31,7 +32,8 @@ public class ProfileWidget extends ComponentBase implements IComponent {
 
 	public void collect() {
 		IProfileDataAccessor dp = DataAccessors.get(IProfileDataAccessor.class, ProfileDataAccessor.class, this);
-		set("profileContext", dp.getUserProfile(1));//ask(new PersistanceMessage("doX", Arrays.asList(new Integer[]{1}))));
+		Promise<Object> wait = prepareSet();
+		set("profileContext", dp.getUserProfile(1), wait);//ask(new PersistanceMessage("doX", Arrays.asList(new Integer[]{1}))));
 
 		getLogger().info("collected");
 

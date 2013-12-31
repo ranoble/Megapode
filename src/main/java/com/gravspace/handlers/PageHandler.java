@@ -82,9 +82,9 @@ public class PageHandler extends UntypedActor {
 	protected Future<String> build(IPage component) throws Exception {
 		Await.ready(component.await(), Duration.create(1, "minute"));
 		component.collect();
-		component.await();
+		Await.ready(component.await(), Duration.create(1, "minute"));
 		component.process();
-		component.await();
+		Await.ready(component.await(), Duration.create(1, "minute"));
 		Future<String> rendered = component.render();
 		return rendered;
 	}

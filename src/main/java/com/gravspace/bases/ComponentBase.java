@@ -29,31 +29,34 @@ public abstract class ComponentBase extends ConcurrantCallable implements ICompo
 		super(routers, coordinatingActor, actorContext);
 	}
 	
-	public void set(final String field, Future<?> source){
-		set(field, source, null);
+	public void set(final String field, Future<?> source, final Promise<Object> waiter){
+		set(field, source, waiter, null);
 	}
 	
 	public ComponentBase getThis(){
 		return this;
 	}
 	
-	public void add(final String field, Future<?> source){
-		add(field, source, null);
+	public void add(final String field, Future<?> source, final Promise<Object> waiter){
+		add(field, source, waiter, null);
+	}
+	
+	public Promise<Object> prepareSet(){
+		Promise<Object> waiter = Futures.promise();
+		Future setterFuture = waiter.future();
+		addTaskToMonitoredList(setterFuture);
+		return waiter;
 	}
 	
 	@SuppressWarnings({ "unchecked", "rawtypes" })
-	public void add(final String field, Future<?> source, final SetterFailure onFailure){
-		getLogger().info("Registering setter on field "+field);
-		final Promise<Object> waiter = Futures.promise();
-		Future setterFuture = waiter.future();
-		taskList.add(setterFuture);
-		monitorForCompletion(setterFuture);
+	public void add(final String field, Future<?> source, final Promise<Object> waiter, final SetterFailure onFailure){
+		getLogger().info("Registering adder on field "+field);
 		source.onComplete(new OnComplete(){
 			@Override
 			public void onComplete(Throwable exception, Object returnValue)
 					throws Throwable {
 
-				getLogger().info("Task Complete, Setter");
+				getLogger().info("Task Complete, Adder "+field);
 				if (exception == null){
 					
 					try {
@@ -62,30 +65,30 @@ public abstract class ComponentBase extends ConcurrantCallable implements ICompo
 						e.printStackTrace();
 						getLogger().error("error", e);
 					}
-					getLogger().info("I has set it!");
+					getLogger().info("I has set it! "+field+" "+returnValue.toString());
 				} else if (onFailure != null) {
 					getLogger().info("I has failure, but will deal with it!");
 					onFailure.handleFailure(getThis(), field, exception);
-				} else 
-					getLogger().info("Error but I care not!!");
+				} else {
+					getLogger().info("Error but I care not!! "+field);
+					getLogger().error(exception, "Error");
+				}
+					
 				waiter.success(null);
 			}	
 		}, this.getActorContext().dispatcher());
 	}
 	
 	@SuppressWarnings({ "unchecked", "rawtypes" })
-	public void set(final String field, Future<?> source, final SetterFailure onFailure){
+	public void set(final String field, Future<?> source, final Promise<Object> waiter, final SetterFailure onFailure){
 		getLogger().info("Registering setter on field "+field);
-		final Promise<Object> waiter = Futures.promise();
-		Future setterFuture = waiter.future();
-		taskList.add(setterFuture);
-		monitorForCompletion(setterFuture);
+
 		source.onComplete(new OnComplete(){
 			@Override
 			public void onComplete(Throwable exception, Object returnValue)
 					throws Throwable {
 
-				getLogger().info("Task Complete, Setter");
+				getLogger().info("Task Complete, Setter "+field);
 				if (exception == null){
 					
 					try {
@@ -94,9 +97,9 @@ public abstract class ComponentBase extends ConcurrantCallable implements ICompo
 						e.printStackTrace();
 						getLogger().error("error", e);
 					}
-					getLogger().info("I has set it!");
+					getLogger().info("I has set it! "+field);
 				} else if (onFailure != null) {
-					getLogger().info("I has failure, but will deal with it!");
+					getLogger().info("I has failure, but will deal with it! "+field);
 					onFailure.handleFailure(getThis(), field, exception);
 				} else {
 					getLogger().error(exception, "Error");

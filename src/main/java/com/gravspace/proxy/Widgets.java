@@ -30,9 +30,18 @@ public class Widgets {
 		@Override
 		public Object invoke(Object proxy, Method method, Object[] args)
 				throws Throwable {
+			System.out.println(method.getName().toString());
 			if (args == null)
-				args = new Object[]{};
-			List<?> params = Arrays.asList(args);
+				args = new Object[]{new Object[]{}};
+			System.out.println(args.getClass().getCanonicalName());
+			Object[] _arg = (Object[])args[0];
+			System.out.println(_arg.getClass().getCanonicalName());
+//			for ()
+			List<Object> params = new ArrayList<Object>();
+			for (Object arg: _arg){
+				params.add(arg);
+			}
+			//List<?> params = Arrays.asList(args);
 			System.out.println(params.toString());
 			return caller.ask(new ComponentMessage(concreteCanonicalName, params));
 		}

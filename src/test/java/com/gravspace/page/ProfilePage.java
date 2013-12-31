@@ -6,6 +6,7 @@ import java.util.Map;
 
 import scala.concurrent.Await;
 import scala.concurrent.Future;
+import scala.concurrent.Promise;
 import scala.concurrent.duration.Duration;
 import akka.actor.ActorRef;
 import akka.actor.UntypedActorContext;
@@ -43,7 +44,8 @@ public class ProfilePage extends PageBase {
 		task.logTask("Richard!");
 //		call(new TaskMessage("simple", Arrays.asList(new Integer[]{1, 2})));
 		IProfileDataAccessor dp = DataAccessors.get(IProfileDataAccessor.class, ProfileDataAccessor.class, this);
-		set("profileContext", dp.getUserProfile(1));//ask(new PersistanceMessage("doX", Arrays.asList(new Integer[]{1}))));
+		Promise<Object> setWait = prepareSet();
+		set("profileContext", dp.getUserProfile(1), setWait);//ask(new PersistanceMessage("doX", Arrays.asList(new Integer[]{1}))));
 //		set("profileContext", profileData);
 		getLogger().info("collected");
 	}

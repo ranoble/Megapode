@@ -67,9 +67,15 @@ public class ConcurrantCallable {
 		Timeout timeout = new Timeout(Duration.create(1, "minute"));
 		final Future<Object> future = Patterns.ask(routers.get(Layers.RENDERER), message, timeout);
 		getLogger().info("Asking"+future.toString());
-		taskList.add(future);
-		monitorForCompletion(future);
+		addTaskToMonitoredList(future);
 		return future;
+	}
+
+	protected void addTaskToMonitoredList(final Future<Object> future) {
+		
+		taskList.add(future);
+		getLogger().info("Task added => "+taskList.size());
+		monitorForCompletion(future);
 	}
 	
 	public Future<Object> ask(ComponentMessage message){
@@ -77,8 +83,7 @@ public class ConcurrantCallable {
 		Timeout timeout = new Timeout(Duration.create(1, "minute"));
 		final Future<Object> future = Patterns.ask(routers.get(Layers.COMPONENT), message, timeout);
 		getLogger().info("Asking"+future.toString());
-		taskList.add(future);
-		monitorForCompletion(future);
+		addTaskToMonitoredList(future);
 		return future;
 	}
 	
@@ -87,8 +92,7 @@ public class ConcurrantCallable {
 		Timeout timeout = new Timeout(Duration.create(1, "minute"));
 		final Future<Object> future = Patterns.ask(routers.get(Layers.DATA_ACCESS), message, timeout);
 		getLogger().info("Asking"+future.toString());
-		taskList.add(future);
-		monitorForCompletion(future);
+		addTaskToMonitoredList(future);
 		return future;
 	}
 	
@@ -97,8 +101,7 @@ public class ConcurrantCallable {
 		Timeout timeout = new Timeout(Duration.create(1, "minute"));
 		final Future<Object> future = Patterns.ask(routers.get(Layers.CALCULATION), message, timeout);
 		getLogger().info("Asking"+future.toString());
-		taskList.add(future);
-		monitorForCompletion(future);
+		addTaskToMonitoredList(future);
 		return future;
 	}
 	
@@ -114,7 +117,7 @@ public class ConcurrantCallable {
 			public void onSuccess(Object response) throws Throwable {
 				getLogger().info("Task Complete, Monitor");
 				taskList.remove(future);
-
+				getLogger().info("Task removed => "+taskList.size());
 				notifyWaiters(future);
 			}
 		}, getActorContext().dispatcher());
