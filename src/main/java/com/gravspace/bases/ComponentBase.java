@@ -93,11 +93,13 @@ public abstract class ComponentBase extends ConcurrantCallable implements ICompo
 					
 					try {
 						BeanUtils.setProperty(getThis(), field, returnValue);
+						getLogger().info("I has set it! "+field+ " "+returnValue.toString());
 					} catch (IllegalAccessException | InvocationTargetException e){
+						getLogger().info("Bollocks! "+field+ " "+returnValue.toString());
 						e.printStackTrace();
 						getLogger().error("error", e);
 					}
-					getLogger().info("I has set it! "+field);
+					
 				} else if (onFailure != null) {
 					getLogger().info("I has failure, but will deal with it! "+field);
 					onFailure.handleFailure(getThis(), field, exception);
