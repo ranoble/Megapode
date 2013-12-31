@@ -37,7 +37,8 @@ public class ComponentHandler extends UntypedActor {
 			try {
 				ComponentMessage message = (ComponentMessage)rawMessage;
 				IComponent component = components.get(message.getRouteToken()).getConstructor(Map.class, ActorRef.class, UntypedActorContext.class).newInstance(routers, getSender(), this.context());
-				component.initialise(message.getParameters());
+				component.initialise(message.getParameters().toArray(new Object[0]));
+//				Await.ready(component.await(), Duration.create(1, "minute"));
 				rendered = build(component);
 				
 			} catch (Exception e){
@@ -51,6 +52,7 @@ public class ComponentHandler extends UntypedActor {
 	}
 
 	protected Future<String> build(IComponent component) throws Exception {
+		Await.ready(component.await(), Duration.create(1, "minute"));
 		component.collect();
 		Await.ready(component.await(), Duration.create(1, "minute"));
 //		Thread.sleep(100);

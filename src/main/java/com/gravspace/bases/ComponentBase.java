@@ -2,9 +2,12 @@ package com.gravspace.bases;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.Map;
+import java.util.List;
 import java.util.concurrent.Callable;
 
 import org.apache.commons.beanutils.BeanUtils;
+import org.apache.commons.beanutils.PropertyUtils;
+import org.apache.commons.beanutils.PropertyUtilsBean;
 
 import scala.concurrent.Future;
 import scala.concurrent.Promise;
@@ -34,6 +37,42 @@ public abstract class ComponentBase extends ConcurrantCallable implements ICompo
 		return this;
 	}
 	
+	public void add(final String field, Future<?> source){
+		add(field, source, null);
+	}
+	
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	public void add(final String field, Future<?> source, final SetterFailure onFailure){
+		getLogger().info("Registering setter on field "+field);
+		final Promise<Object> waiter = Futures.promise();
+		Future setterFuture = waiter.future();
+		taskList.add(setterFuture);
+		monitorForCompletion(setterFuture);
+		source.onComplete(new OnComplete(){
+			@Override
+			public void onComplete(Throwable exception, Object returnValue)
+					throws Throwable {
+
+				getLogger().info("Task Complete, Setter");
+				if (exception == null){
+					
+					try {
+						((List)PropertyUtils.getIndexedProperty(getThis(), field)).add(returnValue);
+					} catch (IllegalAccessException | InvocationTargetException e){
+						e.printStackTrace();
+						getLogger().error("error", e);
+					}
+					getLogger().info("I has set it!");
+				} else if (onFailure != null) {
+					getLogger().info("I has failure, but will deal with it!");
+					onFailure.handleFailure(getThis(), field, exception);
+				} else 
+					getLogger().info("Error but I care not!!");
+				waiter.success(null);
+			}	
+		}, this.getActorContext().dispatcher());
+	}
+	
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public void set(final String field, Future<?> source, final SetterFailure onFailure){
 		getLogger().info("Registering setter on field "+field);
@@ -48,10 +87,7 @@ public abstract class ComponentBase extends ConcurrantCallable implements ICompo
 
 				getLogger().info("Task Complete, Setter");
 				if (exception == null){
-					getLogger().info("No Exception: Yay!");
-					getLogger().info(returnValue.toString());
-					getLogger().info(getThis().getClass().getCanonicalName());
-					getLogger().info(returnValue.getClass().getCanonicalName());
+					
 					try {
 						BeanUtils.setProperty(getThis(), field, returnValue);
 					} catch (IllegalAccessException | InvocationTargetException e){
@@ -62,8 +98,11 @@ public abstract class ComponentBase extends ConcurrantCallable implements ICompo
 				} else if (onFailure != null) {
 					getLogger().info("I has failure, but will deal with it!");
 					onFailure.handleFailure(getThis(), field, exception);
-				} else 
-					getLogger().info("Error but I care not!!");
+				} else {
+					getLogger().error(exception, "Error");
+					getLogger().info("Error on field "+field+" but I care not!!");
+				}
+				
 				waiter.success(null);
 			}	
 		}, this.getActorContext().dispatcher());

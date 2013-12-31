@@ -87,7 +87,7 @@ import com.sun.jersey.api.uri.UriTemplate;
  */
 public class HttpServer {
 
-    public static void main(String[] args) throws Exception {
+    public static void start(String[] args) throws Exception {
        
         int port = 8082;
         if (args.length >= 1) {

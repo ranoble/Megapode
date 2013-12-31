@@ -34,6 +34,7 @@ public abstract class PageBase  extends ComponentBase implements IPage {
 	protected HttpResponse response;
 	protected HttpContext context;
 	protected Map<String, String> params;
+	protected String method;
 	
 	
 	public PageBase(final Map<Layers, ActorRef> routers, final ActorRef coordinatingActor, final UntypedActorContext actorContext){
@@ -49,6 +50,7 @@ public abstract class PageBase  extends ComponentBase implements IPage {
 		this.response = response;
 		this.context = context;
 		this.params = params;
+		this.method = request.getRequestLine().getMethod().toUpperCase();
 	}
 	
 	public void initialise(Object... args){}

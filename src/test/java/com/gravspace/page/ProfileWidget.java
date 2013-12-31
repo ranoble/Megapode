@@ -12,7 +12,7 @@ import com.gravspace.abstractions.IComponent;
 import com.gravspace.abstractions.IWidget;
 import com.gravspace.annotations.Widget;
 import com.gravspace.bases.ComponentBase;
-import com.gravspace.proxy.DataAccessorProxyFactory;
+import com.gravspace.proxy.DataAccessors;
 import com.gravspace.util.Layers;
 
 @Widget
@@ -30,7 +30,7 @@ public class ProfileWidget extends ComponentBase implements IComponent {
 	}
 
 	public void collect() {
-		IProfileDataAccessor dp = DataAccessorProxyFactory.getProxy(IProfileDataAccessor.class, ProfileDataAccessor.class, this);
+		IProfileDataAccessor dp = DataAccessors.get(IProfileDataAccessor.class, ProfileDataAccessor.class, this);
 		set("profileContext", dp.getUserProfile(1));//ask(new PersistanceMessage("doX", Arrays.asList(new Integer[]{1}))));
 
 		getLogger().info("collected");

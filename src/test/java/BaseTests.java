@@ -31,10 +31,10 @@ import com.gravspace.page.IProfileDataAccessor;
 import com.gravspace.page.ProfileCalculation;
 import com.gravspace.page.ProfileDataAccessor;
 import com.gravspace.page.ProfileWidget;
-import com.gravspace.proxy.CalculationProxyFactory;
-import com.gravspace.proxy.DataAccessorProxyFactory;
-import com.gravspace.proxy.RendererProxyFactory;
-import com.gravspace.proxy.WidgetProxyFactory;
+import com.gravspace.proxy.Calculations;
+import com.gravspace.proxy.DataAccessors;
+import com.gravspace.proxy.Renderers;
+import com.gravspace.proxy.Widgets;
 
 import core.CallableContainer;
 import core.GetCallable;
@@ -87,7 +87,7 @@ public class BaseTests{
 			{
 	
 				
-				IProfileCalculation calc = CalculationProxyFactory.getProxy(IProfileCalculation.class, ProfileCalculation.class, cc.getCallable());
+				IProfileCalculation calc = Calculations.get(IProfileCalculation.class, ProfileCalculation.class, cc.getCallable());
 				Future<String> result = calc.getThree();
 				
 				String res = (String) Await.result(result, Duration.create(1, "minute"));
@@ -102,7 +102,7 @@ public class BaseTests{
 			{
 				
 				
-				IProfileDataAccessor data = DataAccessorProxyFactory.getProxy(IProfileDataAccessor.class, ProfileDataAccessor.class, cc.getCallable());
+				IProfileDataAccessor data = DataAccessors.get(IProfileDataAccessor.class, ProfileDataAccessor.class, cc.getCallable());
 				Future<Map<String, Object>> result = data.getUserProfile(1);
 				
 				Map<String, Object> res = (Map<String, Object>) Await.result(result, Duration.create(1, "minute"));
@@ -117,7 +117,7 @@ public class BaseTests{
 			{
 				
 				
-				IRenderer data = RendererProxyFactory.getDefaultRender(cc.getCallable());
+				IRenderer data = Renderers.getDefault(cc.getCallable());
 				Map<String, String> context = new HashMap<>();
 				context.put("context_var", "Megapode");
 				Future<String> result = data.render("test_template.vm", context);
@@ -132,7 +132,7 @@ public class BaseTests{
 	public void testWidget() throws Exception {
 		new JavaTestKit(system) {
 			{
-				IWidget data = WidgetProxyFactory.getProxy(ProfileWidget.class, cc.getCallable());//getDefaultRender(cc.getCallable());
+				IWidget data = Widgets.get(ProfileWidget.class, cc.getCallable());//getDefaultRender(cc.getCallable());
 
 				Future<String> result = data.build(1, 2, 3);
 				

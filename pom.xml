@@ -54,7 +54,7 @@
 			<version>1.0</version>
 		</dependency>
 
-		<!-- http://jurlmap.codegremlins.com/manual -->
+		
 		<dependency>
 			<groupId>commons-dbutils</groupId>
 			<artifactId>commons-dbutils</artifactId>

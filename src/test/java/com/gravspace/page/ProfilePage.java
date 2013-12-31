@@ -18,8 +18,8 @@ import com.gravspace.messages.CalculationMessage;
 import com.gravspace.messages.PersistanceMessage;
 import com.gravspace.messages.RenderMessage;
 import com.gravspace.messages.TaskMessage;
-import com.gravspace.proxy.DataAccessorProxyFactory;
-import com.gravspace.proxy.TaskProxyFactory;
+import com.gravspace.proxy.DataAccessors;
+import com.gravspace.proxy.Tasks;
 import com.gravspace.util.Layers;
 
 @Page(path="/user/<user_id>/")
@@ -38,11 +38,11 @@ public class ProfilePage extends PageBase {
 	
 
 	public void collect() {
-		IProfileTask task = TaskProxyFactory.getProxy(IProfileTask.class, ProfileTask.class, this);
+		IProfileTask task = Tasks.get(IProfileTask.class, ProfileTask.class, this);
 //		ProfileTasks task2 = TaskProxyFactory.getProxy(ProfileTask.class, this);
 		task.logTask("Richard!");
 //		call(new TaskMessage("simple", Arrays.asList(new Integer[]{1, 2})));
-		IProfileDataAccessor dp = DataAccessorProxyFactory.getProxy(IProfileDataAccessor.class, ProfileDataAccessor.class, this);
+		IProfileDataAccessor dp = DataAccessors.get(IProfileDataAccessor.class, ProfileDataAccessor.class, this);
 		set("profileContext", dp.getUserProfile(1));//ask(new PersistanceMessage("doX", Arrays.asList(new Integer[]{1}))));
 //		set("profileContext", profileData);
 		getLogger().info("collected");

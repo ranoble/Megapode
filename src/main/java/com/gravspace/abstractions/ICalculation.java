@@ -1,7 +1,6 @@
 package com.gravspace.abstractions;
 
-import java.util.List;
 
-public interface ICalculation<E> {
-	public E calculate(Object... list) throws Exception;
+public interface ICalculation {
+	public Object calculate(Object... list) throws Exception;
 }

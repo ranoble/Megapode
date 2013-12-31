@@ -137,7 +137,9 @@ public class CoordinatingActor extends UntypedActor {
 		List<ActorRef> pageActors = new ArrayList<ActorRef>();
 //		List<PageRoute> routers = new ArrayList<PageRoute>();
 		List<PageRoute> routers = AnnotationParser.getAnnotatedPages(list);
-		
+		for (PageRoute route: routers){
+			log.info(String.format("Registering pages: [%s] [%s]", route.getTemplate().toString(), route.getPageClass().getCanonicalName()));
+		}
 //		routers.add(new PageRoute("/test/{value}/", ProfilePage.class));
 		for (int i = 0; i < actors; i++){
 			pageActors.add(this.getContext().actorOf(Props.create(PageHandler.class, routerMap, routers), "PageHandler-"+i));

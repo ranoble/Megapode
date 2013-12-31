@@ -9,7 +9,9 @@ import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.protocol.HttpContext;
 
+import scala.concurrent.Await;
 import scala.concurrent.Future;
+import scala.concurrent.duration.Duration;
 
 import akka.actor.ActorRef;
 import akka.actor.Status;
@@ -78,6 +80,7 @@ public class PageHandler extends UntypedActor {
 	}
 	
 	protected Future<String> build(IPage component) throws Exception {
+		Await.ready(component.await(), Duration.create(1, "minute"));
 		component.collect();
 		component.await();
 		component.process();
