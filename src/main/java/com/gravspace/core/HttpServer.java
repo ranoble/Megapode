@@ -32,6 +32,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.URL;
 import java.security.KeyStore;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
@@ -108,6 +109,7 @@ public class HttpServer {
         // Set up the HTTP protocol processor
         HttpProcessor httpproc = HttpProcessorBuilder.create()
                 .add(new ResponseDate())
+                .add(new ResponseDate())
                 .add(new ResponseServer("Test/1.1"))
                 .add(new ResponseContent())
                 .add(new ResponseConnControl()).build();
@@ -171,7 +173,8 @@ public class HttpServer {
                 final HttpRequest request,
                 final HttpResponse response,
                 final HttpContext context) throws HttpException, IOException {
-            String method = request.getRequestLine().getMethod().toUpperCase(Locale.ENGLISH);
+            Date now = new Date();
+        	String method = request.getRequestLine().getMethod().toUpperCase(Locale.ENGLISH);
             if (!method.equals("GET") && !method.equals("HEAD") && !method.equals("POST")) {
                 throw new MethodNotSupportedException(method + " method not supported");
             }
@@ -207,9 +210,9 @@ public class HttpServer {
 			}
 
             HttpEntity body = new StringEntity(result,
-                    ContentType.create("text/plain", Consts.UTF_8));
+                    ContentType.create("text/html", Consts.UTF_8));
             response.setEntity(body);
-
+            System.out.println(((new Date()).getTime() - now.getTime())+" ms");
         }
 
     }

@@ -38,7 +38,7 @@ public class ComponentHandler extends UntypedActor {
 				ComponentMessage message = (ComponentMessage)rawMessage;
 				IComponent component = components.get(message.getRouteToken()).getConstructor(Map.class, ActorRef.class, UntypedActorContext.class).newInstance(routers, getSender(), this.context());
 				component.initialise(message.getParameters().toArray(new Object[0]));
-//				Await.ready(component.await(), Duration.create(1, "minute"));
+				//forward if we need to get out of a recusion lock.
 				rendered = build(component);
 				
 			} catch (Exception e){

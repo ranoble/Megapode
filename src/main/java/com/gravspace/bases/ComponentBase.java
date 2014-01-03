@@ -60,7 +60,8 @@ public abstract class ComponentBase extends ConcurrantCallable implements ICompo
 				if (exception == null){
 					
 					try {
-						((List)PropertyUtils.getIndexedProperty(getThis(), field)).add(returnValue);
+//						PropertyUtils.getProperty(bean, name)
+						((List)PropertyUtils.getProperty(getThis(), field)).add(returnValue);
 					} catch (IllegalAccessException | InvocationTargetException e){
 						e.printStackTrace();
 						getLogger().error("error", e);
