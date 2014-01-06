@@ -24,14 +24,10 @@ public abstract class RendererBase extends ConcurrantCallable implements IRender
 
 	public RendererBase(final Map<Layers, ActorRef> routers, 
 			final ActorRef coordinatingActor, 
-			final UntypedActorContext actorContext){
+			final UntypedActorContext actorContext, 
+			final VelocityEngine engine){
 		super(routers, coordinatingActor, actorContext);
-		Properties props = new Properties();
-		props.put("resource.loader", "class");
-		props.put("class.resource.loader.description", "Velocity Classpath Resource Loader");
-		props.put("class.resource.loader.class", "org.apache.velocity.runtime.resource.loader.ClasspathResourceLoader");
-		engine = new VelocityEngine();
-		engine.init(props);
+		this.engine = engine;
 	}
 
 	public Future<String> render(Map<String, ?> context) {

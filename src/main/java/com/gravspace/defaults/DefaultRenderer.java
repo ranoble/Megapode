@@ -3,6 +3,7 @@ package com.gravspace.defaults;
 import java.util.Map;
 
 import org.apache.commons.lang.NotImplementedException;
+import org.apache.velocity.app.VelocityEngine;
 
 import scala.concurrent.Future;
 
@@ -19,8 +20,8 @@ import com.gravspace.util.Layers;
 public class DefaultRenderer extends RendererBase implements IRenderer {
 
 	public DefaultRenderer(Map<Layers, ActorRef> routers,
-			ActorRef coordinatingActor, UntypedActorContext actorContext) {
-		super(routers, coordinatingActor, actorContext);
+			ActorRef coordinatingActor, UntypedActorContext actorContext, VelocityEngine engine) {
+		super(routers, coordinatingActor, actorContext, engine);
 		// TODO Auto-generated constructor stub
 	}
 

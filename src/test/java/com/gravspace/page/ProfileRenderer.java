@@ -2,6 +2,8 @@ package com.gravspace.page;
 
 import java.util.Map;
 
+import org.apache.velocity.app.VelocityEngine;
+
 import com.gravspace.bases.RendererBase;
 import com.gravspace.util.Layers;
 
@@ -12,8 +14,8 @@ public class ProfileRenderer extends RendererBase {
 
 
 	public ProfileRenderer(Map<Layers, ActorRef> routers,
-			ActorRef coordinatingActor, UntypedActorContext actorContext) {
-		super(routers, coordinatingActor, actorContext);
+			ActorRef coordinatingActor, UntypedActorContext actorContext, VelocityEngine engine) {
+		super(routers, coordinatingActor, actorContext, engine);
 	}
 
 	@Override
