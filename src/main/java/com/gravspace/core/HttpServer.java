@@ -33,10 +33,10 @@ import java.net.Socket;
 import java.net.URL;
 import java.security.KeyStore;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.Locale;
-import java.util.Map;
 import java.util.Properties;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.TimeUnit;
 
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.KeyManagerFactory;
@@ -45,6 +45,7 @@ import javax.net.ssl.SSLServerSocketFactory;
 
 import org.apache.http.ConnectionClosedException;
 import org.apache.http.Consts;
+import org.apache.http.Header;
 import org.apache.http.HttpConnectionFactory;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpEntityEnclosingRequest;
@@ -77,220 +78,227 @@ import akka.actor.Props;
 import akka.actor.TypedActor;
 import akka.actor.TypedProps;
 import akka.japi.Creator;
-import akka.japi.Option;
 
 import com.gravspace.entrypoint.IRequestHandlerActor;
 import com.gravspace.entrypoint.RequestHandlerActor;
-import com.sun.jersey.api.uri.UriTemplate;
+import com.gravspace.messages.ResponseMessage;
+import com.gravspace.util.Cookie;
+import com.gravspace.util.LimitedQueue;
 
 /**
  * Basic, yet fully functional and spec compliant, HTTP/1.1 file server.
  */
 public class HttpServer {
 
-    public static void start(String[] args) throws Exception {
-       
-        int port = 8082;
-        if (args.length >= 1) {
-            port = Integer.parseInt(args[0]);
-        }
-        
-        ActorSystem system = ActorSystem.create("Application-System");
-        Properties config = new Properties();
-        config.load(HttpServer.class.getResourceAsStream("/megapode.conf"));
-        ActorRef master = system.actorOf(Props.create(CoordinatingActor.class, config), "Coordinator");
-        
-        system.registerOnTermination(new Runnable(){
-                public void run() {
-//                        logger.info("System shutting down");
-                }
-        });
+	public static void start(String[] args) throws Exception {
 
-        // Set up the HTTP protocol processor
-        HttpProcessor httpproc = HttpProcessorBuilder.create()
-                .add(new ResponseDate())
-                .add(new ResponseDate())
-                .add(new ResponseServer("Test/1.1"))
-                .add(new ResponseContent())
-                .add(new ResponseConnControl()).build();
+		int port = 8082;
+		if (args.length >= 1) {
+			port = Integer.parseInt(args[0]);
+		}
 
-        // Set up request handlers
-        UriHttpRequestHandlerMapper reqistry = new UriHttpRequestHandlerMapper();
-        reqistry.register("*", new HttpHandler(system, master));
+		ActorSystem system = ActorSystem.create("Application-System");
+		Properties config = new Properties();
+		config.load(HttpServer.class.getResourceAsStream("/megapode.conf"));
+		ActorRef master = system.actorOf(
+				Props.create(CoordinatingActor.class, config), "Coordinator");
 
-        // Set up the HTTP service
-        HttpService httpService = new HttpService(httpproc, reqistry);
+		// Set up the HTTP protocol processor
+		HttpProcessor httpproc = HttpProcessorBuilder.create()
+				.add(new ResponseDate()).add(new ResponseServer("Test/1.1"))
+				.add(new ResponseContent()).add(new ResponseConnControl())
+				.build();
 
-        SSLServerSocketFactory sf = null;
-        if (port == 8443) {
-            // Initialize SSL context
-            ClassLoader cl = HttpServer.class.getClassLoader();
-            URL url = cl.getResource("my.keystore");
-            if (url == null) {
-                System.out.println("Keystore not found");
-                System.exit(1);
-            }
-            KeyStore keystore  = KeyStore.getInstance("jks");
-            keystore.load(url.openStream(), "secret".toCharArray());
-            KeyManagerFactory kmfactory = KeyManagerFactory.getInstance(
-                    KeyManagerFactory.getDefaultAlgorithm());
-            kmfactory.init(keystore, "secret".toCharArray());
-            KeyManager[] keymanagers = kmfactory.getKeyManagers();
-            SSLContext sslcontext = SSLContext.getInstance("TLS");
-            sslcontext.init(keymanagers, null, null);
-            sf = sslcontext.getServerSocketFactory();
-        }
+		// Set up request handlers
+		UriHttpRequestHandlerMapper reqistry = new UriHttpRequestHandlerMapper();
+		reqistry.register("*", new HttpHandler(system, master));
 
-        Thread t = new RequestListenerThread(port, httpService, sf);
-        t.setDaemon(false);
-        t.start();
-        
-        t.join();
-    }
-    
-    
+		// Set up the HTTP service
+		HttpService httpService = new HttpService(httpproc, reqistry);
 
-    static class HttpHandler implements HttpRequestHandler  {
+		SSLServerSocketFactory sf = null;
+		if (port == 8443) {
+			// Initialize SSL context
+			ClassLoader cl = HttpServer.class.getClassLoader();
+			URL url = cl.getResource("my.keystore");
+			if (url == null) {
+				System.out.println("Keystore not found");
+				System.exit(1);
+			}
+			KeyStore keystore = KeyStore.getInstance("jks");
+			keystore.load(url.openStream(), "secret".toCharArray());
+			KeyManagerFactory kmfactory = KeyManagerFactory
+					.getInstance(KeyManagerFactory.getDefaultAlgorithm());
+			kmfactory.init(keystore, "secret".toCharArray());
+			KeyManager[] keymanagers = kmfactory.getKeyManagers();
+			SSLContext sslcontext = SSLContext.getInstance("TLS");
+			sslcontext.init(keymanagers, null, null);
+			sf = sslcontext.getServerSocketFactory();
+		}
 
-        private ActorRef coordinator;
+		RequestListenerThread t = new RequestListenerThread(port, httpService,
+				sf);
+		t.setDaemon(false);
+		t.start();
+
+		t.join();
+	}
+
+	static class HttpHandler implements HttpRequestHandler {
+
+		private ActorRef coordinator;
 		private ActorSystem system;
 		private IRequestHandlerActor requester;
 
 		public HttpHandler(final ActorSystem system, final ActorRef coordinator) {
-            super();
-            this.coordinator = coordinator; 
-            this.system = system;
-            
-            requester =
-          		  TypedActor.get(system).typedActorOf(new TypedProps<RequestHandlerActor>(RequestHandlerActor.class,  new Creator<RequestHandlerActor>(){
-          			  public RequestHandlerActor create() {
-          				  return new RequestHandlerActor(coordinator);
-          			  }
-          		  }), "entrypoint");
-        }
+			super();
+			this.coordinator = coordinator;
+			this.system = system;
 
-        public void handle(
-                final HttpRequest request,
-                final HttpResponse response,
-                final HttpContext context) throws HttpException, IOException {
-            Date now = new Date();
-        	String method = request.getRequestLine().getMethod().toUpperCase(Locale.ENGLISH);
-            if (!method.equals("GET") && !method.equals("HEAD") && !method.equals("POST")) {
-                throw new MethodNotSupportedException(method + " method not supported");
-            }
-            String target = request.getRequestLine().getUri();
-            UriTemplate template = new UriTemplate("/test/{which}");
-            Map<String, String> templateVariableToValue = new HashMap<String, String>();
-            boolean matches = template.match(target, templateVariableToValue);
-            if (matches){
-            	String s = templateVariableToValue.toString();
-            	
-            }
-            System.out.println("adsda");
+			requester = TypedActor.get(system).typedActorOf(
+					new TypedProps<RequestHandlerActor>(
+							RequestHandlerActor.class,
+							new Creator<RequestHandlerActor>() {
+								public RequestHandlerActor create() {
+									return new RequestHandlerActor(coordinator);
+								}
+							}), "entrypoint");
+		}
 
-            if (request instanceof HttpEntityEnclosingRequest) {
-                HttpEntity entity = ((HttpEntityEnclosingRequest) request).getEntity();
-                byte[] entityContent = EntityUtils.toByteArray(entity);
-                System.out.println("Incoming entity content (bytes): " + entityContent.length);
-            }
+		public void handle(final HttpRequest request,
+				final HttpResponse response, final HttpContext context)
+				throws HttpException, IOException {
+			Date now = new Date();
+			String method = request.getRequestLine().getMethod()
+					.toUpperCase(Locale.ENGLISH);
+			if (!method.equals("GET") && !method.equals("HEAD")
+					&& !method.equals("POST")) {
+				throw new MethodNotSupportedException(method
+						+ " method not supported");
+			}
 
-            
-            String result;
+			byte[] entityContent = null;
+			if (request instanceof HttpEntityEnclosingRequest) {
+				HttpEntity entity = ((HttpEntityEnclosingRequest) request)
+						.getEntity();
+				entityContent = EntityUtils.toByteArray(entity);
+			}
+
+			// ByteArrayEntity
+			ResponseMessage result;
 			try {
-				result = requester.process(request, response, context);
-				response.setStatusCode(HttpStatus.SC_OK);
+				
+				result = requester.process(request.getRequestLine(),
+						request.getAllHeaders(), entityContent);
+				HttpEntity body = new StringEntity(new String(
+						result.getResponseContent()), ContentType.create(
+						result.getContentType(), Consts.UTF_8));
+				response.setEntity(body);
+				response.setStatusCode(result.getStatus());
+				response.setHeaders(result.getHeaders().toArray(new Header[0]));
+				System.out.println(((new Date()).getTime() - now.getTime())
+						+ " ms");
 			} catch (Exception e) {
 				System.out.println("Got here");
 				response.setStatusCode(HttpStatus.SC_METHOD_FAILURE);
-            	HttpEntity body = new StringEntity(e.getMessage(),
-                        ContentType.create("text/plain", Consts.UTF_8));
-                response.setEntity(body);
-                
-                return;
+				HttpEntity body = new StringEntity(e.getMessage(),
+						ContentType.create("text/plain", Consts.UTF_8));
+				response.setEntity(body);
 			}
 
-            HttpEntity body = new StringEntity(result,
-                    ContentType.create("text/html", Consts.UTF_8));
-            response.setEntity(body);
-            System.out.println(((new Date()).getTime() - now.getTime())+" ms");
-        }
+		}
 
-    }
+	}
 
-    static class RequestListenerThread extends Thread {
+	static class RequestListenerThread extends Thread {
 
-        private final HttpConnectionFactory<DefaultBHttpServerConnection> connFactory;
-        private final ServerSocket serversocket;
-        private final HttpService httpService;
+		private final HttpConnectionFactory<DefaultBHttpServerConnection> connFactory;
+		private final ServerSocket serversocket;
+		private final HttpService httpService;
+		ExecutorService executor;
 
-        public RequestListenerThread(
-                final int port,
-                final HttpService httpService,
-                final SSLServerSocketFactory sf) throws IOException {
-            this.connFactory = DefaultBHttpServerConnectionFactory.INSTANCE;
-            this.serversocket = sf != null ? sf.createServerSocket(port) : new ServerSocket(port);
-            this.httpService = httpService;
-        }
+		public RequestListenerThread(final int port,
+				final HttpService httpService, final SSLServerSocketFactory sf)
+				throws IOException {
+			this.connFactory = DefaultBHttpServerConnectionFactory.INSTANCE;
+			this.serversocket = sf != null ? sf.createServerSocket(port)
+					: new ServerSocket(port);
+			this.httpService = httpService;
+			LimitedQueue<Runnable> blockingQueue = new LimitedQueue<Runnable>(
+					10);
+			executor = new java.util.concurrent.ThreadPoolExecutor(1, 10, 0L,
+					TimeUnit.MILLISECONDS, blockingQueue);
+		}
 
-        @Override
-        public void run() {
-            System.out.println("Listening on port " + this.serversocket.getLocalPort());
-            while (!Thread.interrupted()) {
-                try {
-                    // Set up HTTP connection
-                    Socket socket = this.serversocket.accept();
-                    System.out.println("Incoming connection from " + socket.getInetAddress());
-                    HttpServerConnection conn = this.connFactory.createConnection(socket);
+		@Override
+		public void run() {
+			System.out.println("Listening on port "
+					+ this.serversocket.getLocalPort());
+			while (!Thread.interrupted()) {
+				try {
+					// Set up HTTP connection
 
-                    // Start worker thread
-                    Thread t = new WorkerThread(this.httpService, conn);
-                    t.setDaemon(true);
-                    t.start();
-                } catch (InterruptedIOException ex) {
-                    break;
-                } catch (IOException e) {
-                    System.err.println("I/O error initialising connection thread: "
-                            + e.getMessage());
-                    break;
-                }
-            }
-        }
-    }
+					/**
+					 * TODO: Change this to use an executor service
+					 */
+					Socket socket = this.serversocket.accept();
+					System.out.println("Incoming connection from "
+							+ socket.getInetAddress());
+					HttpServerConnection conn = this.connFactory
+							.createConnection(socket);
 
-    static class WorkerThread extends Thread {
+					// Start worker thread
+					Thread t = new WorkerThread(this.httpService, conn);
+					t.setDaemon(true);
+					// executor.submit(t);
+					t.start();
+				} catch (InterruptedIOException ex) {
+					break;
+				} catch (IOException e) {
+					System.err
+							.println("I/O error initialising connection thread: "
+									+ e.getMessage());
+					break;
+				}
+			}
+		}
+	}
 
-        private final HttpService httpservice;
-        private final HttpServerConnection conn;
+	static class WorkerThread extends Thread {
 
-        public WorkerThread(
-                final HttpService httpservice,
-                final HttpServerConnection conn) {
-            super();
-            this.httpservice = httpservice;
-            this.conn = conn;
-        }
+		private final HttpService httpservice;
+		private final HttpServerConnection conn;
 
-        @Override
-        public void run() {
-            System.out.println("New connection thread");
-            HttpContext context = new BasicHttpContext(null);
-            try {
-                while (!Thread.interrupted() && this.conn.isOpen()) {
-                    this.httpservice.handleRequest(this.conn, context);
-                }
-            } catch (ConnectionClosedException ex) {
-                System.err.println("Client closed connection");
-            } catch (IOException ex) {
-                System.err.println("I/O error: " + ex.getMessage());
-            } catch (HttpException ex) {
-                System.err.println("Unrecoverable HTTP protocol violation: " + ex.getMessage());
-            } finally {
-                try {
-                    this.conn.shutdown();
-                } catch (IOException ignore) {}
-            }
-        }
+		public WorkerThread(final HttpService httpservice,
+				final HttpServerConnection conn) {
+			super();
+			this.httpservice = httpservice;
+			this.conn = conn;
+		}
 
-    }
+		@Override
+		public void run() {
+			System.out.println("New connection thread");
+			HttpContext context = new BasicHttpContext(null);
+			try {
+				while (!Thread.interrupted() && this.conn.isOpen()) {
+					this.httpservice.handleRequest(this.conn, context);
+				}
+			} catch (ConnectionClosedException ex) {
+				System.err.println("Client closed connection");
+			} catch (IOException ex) {
+				System.err.println("I/O error: " + ex.getMessage());
+			} catch (HttpException ex) {
+				System.err.println("Unrecoverable HTTP protocol violation: "
+						+ ex.getMessage());
+			} finally {
+				try {
+					this.conn.shutdown();
+				} catch (IOException ignore) {
+				}
+			}
+		}
+
+	}
 
 }

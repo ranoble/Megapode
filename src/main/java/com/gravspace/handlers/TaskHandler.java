@@ -25,7 +25,7 @@ public class TaskHandler extends UntypedActor {
 
 	@Override
 	public void onReceive(Object rawMessage) throws Exception {
-		log.info("TaskHandler got: "+rawMessage.getClass().getCanonicalName());
+//		log.info("TaskHandler got: "+rawMessage.getClass().getCanonicalName());
 		if (rawMessage instanceof TaskMessage){
 			TaskMessage message = (TaskMessage)rawMessage;
 

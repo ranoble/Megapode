@@ -21,6 +21,7 @@ import scala.concurrent.duration.Duration;
 import akka.actor.ActorRef;
 import akka.actor.UntypedActorContext;
 import akka.dispatch.Futures;
+import akka.dispatch.OnComplete;
 import akka.dispatch.OnSuccess;
 import akka.event.Logging;
 import akka.event.LoggingAdapter;
@@ -63,10 +64,10 @@ public class ConcurrantCallable {
 	}
 	
 	public Future<Object> ask(RenderMessage message){
-		getLogger().info("Asking");
+//		getLogger().info("Asking");
 		Timeout timeout = new Timeout(Duration.create(1, "minute"));
 		final Future<Object> future = Patterns.ask(routers.get(Layers.RENDERER), message, timeout);
-		getLogger().info("Asking"+future.toString());
+//		getLogger().info("Asking"+future.toString());
 		addTaskToMonitoredList(future);
 		return future;
 	}
@@ -74,58 +75,54 @@ public class ConcurrantCallable {
 	protected void addTaskToMonitoredList(final Future<Object> future) {
 		
 		taskList.add(future);
-		getLogger().info("Task added => "+taskList.size());
 		monitorForCompletion(future);
 	}
 	
 	public Future<Object> ask(ComponentMessage message){
-		getLogger().info("Asking");
+//		getLogger().info("Asking");
 		Timeout timeout = new Timeout(Duration.create(1, "minute"));
 		final Future<Object> future = Patterns.ask(routers.get(Layers.COMPONENT), message, timeout);
-		getLogger().info("Asking"+future.toString());
+//		getLogger().info("Asking"+future.toString());
 		addTaskToMonitoredList(future);
 		return future;
 	}
 	
 	public Future<Object> ask(PersistanceMessage message){
-		getLogger().info("Asking");
+//		getLogger().info("Asking");
 		Timeout timeout = new Timeout(Duration.create(1, "minute"));
 		final Future<Object> future = Patterns.ask(routers.get(Layers.DATA_ACCESS), message, timeout);
-		getLogger().info("Asking"+future.toString());
+//		getLogger().info("Asking"+future.toString());
 		addTaskToMonitoredList(future);
 		return future;
 	}
 	
 	public Future<Object> ask(CalculationMessage message){
-		getLogger().info("Asking");
+//		getLogger().info("Asking");
 		Timeout timeout = new Timeout(Duration.create(1, "minute"));
 		final Future<Object> future = Patterns.ask(routers.get(Layers.CALCULATION), message, timeout);
-		getLogger().info("Asking"+future.toString());
+//		getLogger().info("Asking"+future.toString());
 		addTaskToMonitoredList(future);
 		return future;
 	}
 	
 	public void call(TaskMessage message){
-		getLogger().info("Calling");
+//		getLogger().info("Calling");
 		routers.get(Layers.TASK).tell(message, ActorRef.noSender());
 	}
 
 	protected void monitorForCompletion(final Future<Object> future) {
 		//this should be for oncompletes
-		future.onSuccess(new OnSuccess<Object>() {
+		future.onComplete(new OnComplete<Object>() {
 			@Override
-			public void onSuccess(Object response) throws Throwable {
-				getLogger().info("Task Complete, Monitor");
+			public void onComplete(Throwable arg0, Object response)
+					throws Throwable {
+//				getLogger().info("Task Complete, Monitor");
 				taskList.remove(future);
-				getLogger().info("Task removed => "+taskList.size());
+//				getLogger().info("Task removed => "+taskList.size());
 				notifyWaiters(future);
 			}
 		}, getActorContext().dispatcher());
 	}
-	
-
-	
-	
 	
 	protected void notifyWaiters(Future<Object> future) {
 		if (taskList.isEmpty()){

@@ -1,6 +1,8 @@
 package com.gravspace.handlers;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.Map;
+import java.util.concurrent.Callable;
 
 import scala.concurrent.Await;
 import scala.concurrent.Future;
@@ -16,6 +18,7 @@ import akka.event.LoggingAdapter;
 import com.gravspace.abstractions.IComponent;
 import com.gravspace.messages.ComponentMessage;
 import com.gravspace.util.Layers;
+import static akka.dispatch.Futures.future;
 
 public class ComponentHandler extends UntypedActor {
 	LoggingAdapter log = Logging.getLogger(getContext().system(), this);
@@ -30,16 +33,19 @@ public class ComponentHandler extends UntypedActor {
 
 	@Override
 	public void onReceive(Object rawMessage) throws Exception {
-		log.info("Page got: "+rawMessage.getClass().getCanonicalName());
+//		log.info("Page got: "+rawMessage.getClass().getCanonicalName());
 		if (rawMessage instanceof ComponentMessage){
-			log.info("Handelling Request");
+//			log.info("Handelling Request");
 			Future<String> rendered = null;
 			try {
-				ComponentMessage message = (ComponentMessage)rawMessage;
-				IComponent component = components.get(message.getRouteToken()).getConstructor(Map.class, ActorRef.class, UntypedActorContext.class).newInstance(routers, getSender(), this.context());
-				component.initialise(message.getParameters().toArray(new Object[0]));
-				//forward if we need to get out of a recusion lock.
-				rendered = build(component);
+				final ComponentMessage message = (ComponentMessage)rawMessage;
+				rendered = future(new Callable<String>() {
+					  public String call() throws Exception {
+						  IComponent component = components.get(message.getRouteToken()).getConstructor(Map.class, ActorRef.class, UntypedActorContext.class).newInstance(routers, getSender(), context());
+						  component.initialise(message.getParameters().toArray(new Object[0]));
+						  return build(component);
+					  }
+					}, context().dispatcher());
 				
 			} catch (Exception e){
 				rendered = Futures.failed(e);
@@ -51,7 +57,7 @@ public class ComponentHandler extends UntypedActor {
 		}
 	}
 
-	protected Future<String> build(IComponent component) throws Exception {
+	protected String build(IComponent component) throws Exception {
 		Await.ready(component.await(), Duration.create(1, "minute"));
 		component.collect();
 		Await.ready(component.await(), Duration.create(1, "minute"));
@@ -59,7 +65,7 @@ public class ComponentHandler extends UntypedActor {
 		component.process();
 		Await.ready(component.await(), Duration.create(1, "minute"));
 		Future<String> rendered = component.render();
-		return rendered;
+		return Await.result(rendered, Duration.create(1, "minute"));
 	}
 
 }

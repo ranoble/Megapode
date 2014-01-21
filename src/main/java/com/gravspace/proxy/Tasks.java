@@ -30,7 +30,7 @@ public class Tasks {
 			List<Object> task_args = new ArrayList<>();
 			task_args.add(method.getName());
 			task_args.addAll(Arrays.asList(args));
-			System.out.println(proxy.getClass().getCanonicalName());
+//			System.out.println(proxy.getClass().getCanonicalName());
 			caller.call(new TaskMessage(concreteCanonicalName, task_args));
 			
 			//a task should ALWAYS return null

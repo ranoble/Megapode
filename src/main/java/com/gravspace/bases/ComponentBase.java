@@ -4,13 +4,16 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.Map;
 import java.util.List;
 import java.util.concurrent.Callable;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.beanutils.PropertyUtils;
 import org.apache.commons.beanutils.PropertyUtilsBean;
 
+import scala.concurrent.Await;
 import scala.concurrent.Future;
 import scala.concurrent.Promise;
+import scala.concurrent.duration.Duration;
 import akka.actor.ActorRef;
 import akka.actor.UntypedActorContext;
 import akka.dispatch.Futures;
@@ -20,6 +23,7 @@ import akka.dispatch.OnSuccess;
 import com.gravspace.abstractions.IComponent;
 import com.gravspace.abstractions.ConcurrantCallable;
 import com.gravspace.handlers.SetterFailure;
+import com.gravspace.messages.Null;
 import com.gravspace.util.Layers;
 
 public abstract class ComponentBase extends ConcurrantCallable implements IComponent{
@@ -29,50 +33,101 @@ public abstract class ComponentBase extends ConcurrantCallable implements ICompo
 		super(routers, coordinatingActor, actorContext);
 	}
 	
-	public void set(final String field, Future<?> source, final Promise<Object> waiter){
-		set(field, source, waiter, null);
+	@SuppressWarnings("unchecked")
+	public void set(final String field, Future<?> wrapper){
+		set(field, wrapper, null);
 	}
+	
+	@SuppressWarnings("unchecked")
+	public void set(final String field, Future<?> source, final SetterFailure onFailure){
+		final Promise<Object> wait = prepareSet();
+		set(field, source, wait, onFailure);
+		setIfAlreadyComplete(field, source, wait);
+	}
+	
+	@SuppressWarnings("unchecked")
+	public void add(final String field, Future<?> wrapper){
+		add(field, wrapper, null);
+	}
+	
+	@SuppressWarnings("unchecked")
+	public void add(final String field, Future<?> source, final SetterFailure onFailure){
+		final Promise<Object> wait = prepareSet();
+		add(field, source, wait, onFailure);
+		addIfAlreadyComplete(field, source, wait);
+	}
+
+	private void setIfAlreadyComplete(final String field, Future<?> source,
+			final Promise<Object> wait) {
+		if (source.isCompleted() && !wait.isCompleted()){
+			Object returnValue;
+			try {
+				returnValue = Await.result(source, Duration.create(0, TimeUnit.SECONDS));
+				if (returnValue instanceof Null){
+					BeanUtils.setProperty(getThis(), field, null);
+				} else {
+					BeanUtils.setProperty(getThis(), field, returnValue);
+				}
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			try {
+				wait.success(null);
+			} catch (IllegalStateException e){}
+		}
+	}
+	private void addIfAlreadyComplete(final String field, Future<?> source,
+			final Promise<Object> wait) {
+		if (source.isCompleted() && !wait.isCompleted()){
+			Object returnValue;
+			try {
+				
+				returnValue = Await.result(source, Duration.create(0, TimeUnit.SECONDS));
+				if (!(returnValue instanceof Null)){
+					((List)PropertyUtils.getProperty(getThis(), field)).add(returnValue);
+				}
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			
+			wait.success(null);
+		}
+	}
+	
+	
 	
 	public ComponentBase getThis(){
 		return this;
 	}
 	
-	public void add(final String field, Future<?> source, final Promise<Object> waiter){
-		add(field, source, waiter, null);
-	}
 	
 	public Promise<Object> prepareSet(){
 		Promise<Object> waiter = Futures.promise();
-		Future setterFuture = waiter.future();
+		Future<Object> setterFuture = waiter.future();
 		addTaskToMonitoredList(setterFuture);
 		return waiter;
 	}
 	
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public void add(final String field, Future<?> source, final Promise<Object> waiter, final SetterFailure onFailure){
-		getLogger().info("Registering adder on field "+field);
 		source.onComplete(new OnComplete(){
 			@Override
 			public void onComplete(Throwable exception, Object returnValue)
 					throws Throwable {
-
-				getLogger().info("Task Complete, Adder "+field);
 				if (exception == null){
-					
 					try {
-//						PropertyUtils.getProperty(bean, name)
-						((List)PropertyUtils.getProperty(getThis(), field)).add(returnValue);
+						if (!(returnValue instanceof Null)){
+							((List)PropertyUtils.getProperty(getThis(), field)).add(returnValue);
+						}
 					} catch (IllegalAccessException | InvocationTargetException e){
-						e.printStackTrace();
-						getLogger().error("error", e);
+						getLogger().error(exception, "Adder Exception");
+						exception = e;
 					}
-					getLogger().info("I has set it! "+field+" "+returnValue.toString());
-				} else if (onFailure != null) {
-					getLogger().info("I has failure, but will deal with it!");
-					onFailure.handleFailure(getThis(), field, exception);
-				} else {
-					getLogger().info("Error but I care not!! "+field);
-					getLogger().error(exception, "Error");
+				} 
+				if (exception != null){
+					handleCallbackException(field, onFailure, exception);
 				}
 					
 				waiter.success(null);
@@ -82,36 +137,43 @@ public abstract class ComponentBase extends ConcurrantCallable implements ICompo
 	
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public void set(final String field, Future<?> source, final Promise<Object> waiter, final SetterFailure onFailure){
-		getLogger().info("Registering setter on field "+field);
+//		getLogger().info("Registering setter on field "+field);
 
 		source.onComplete(new OnComplete(){
 			@Override
 			public void onComplete(Throwable exception, Object returnValue)
 					throws Throwable {
 
-				getLogger().info("Task Complete, Setter "+field);
 				if (exception == null){
-					
 					try {
-						BeanUtils.setProperty(getThis(), field, returnValue);
-						getLogger().info("I has set it! "+field+ " "+returnValue.toString());
+						if (returnValue instanceof Null){
+							BeanUtils.setProperty(getThis(), field, null);
+						} else {
+							BeanUtils.setProperty(getThis(), field, returnValue);
+						}
 					} catch (IllegalAccessException | InvocationTargetException e){
-						getLogger().info("Bollocks! "+field+ " "+returnValue.toString());
-						e.printStackTrace();
-						getLogger().error("error", e);
+						getLogger().error(exception, "Setter Exception");
+						exception = e;
 					}
-					
-				} else if (onFailure != null) {
-					getLogger().info("I has failure, but will deal with it! "+field);
-					onFailure.handleFailure(getThis(), field, exception);
-				} else {
-					getLogger().error(exception, "Error");
-					getLogger().info("Error on field "+field+" but I care not!!");
+				}
+				if (exception != null){
+					handleCallbackException(field, onFailure, exception);
 				}
 				
 				waiter.success(null);
-			}	
+			}
+
+			
 		}, this.getActorContext().dispatcher());
 	}
+	
+	private void handleCallbackException(final String field,
+			final SetterFailure onFailure, Throwable exception) {
+		if (onFailure != null) {
+			onFailure.handleFailure(getThis(), field, exception);
+		} else {
+			getLogger().error(exception, "Failed without failure handler");
+		}
+	}	
 	
 }

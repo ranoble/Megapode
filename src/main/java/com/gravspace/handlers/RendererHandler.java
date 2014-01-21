@@ -37,13 +37,11 @@ public class RendererHandler extends UntypedActor {
 
 	@Override
 	public void onReceive(Object rawMessage) throws Exception {
-		log.info("Renderer got: "+rawMessage.getClass().getCanonicalName());
+//		log.info("Renderer got: "+rawMessage.getClass().getCanonicalName());
 		if (rawMessage instanceof RenderMessage){
 			RenderMessage message = (RenderMessage)rawMessage;
 			//final ActorRef coordinatingActor, final UntypedActorContext actorContext
-			for (String key: renderers.keySet()){
-				log.info(key);
-			}
+			
 			Class<? extends IRenderer> renderer = renderers.get(message.getRenderer());
 			Constructor<? extends IRenderer> constr = renderer.getConstructor(Map.class, ActorRef.class, UntypedActorContext.class, VelocityEngine.class);
 			IRenderer page = constr.newInstance(routers, getSender(), this.context(), engine);

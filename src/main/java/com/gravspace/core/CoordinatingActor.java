@@ -34,6 +34,7 @@ import com.gravspace.handlers.ComponentHandler;
 import com.gravspace.handlers.PageHandler;
 import com.gravspace.handlers.PersistanceHandler;
 import com.gravspace.handlers.RendererHandler;
+import com.gravspace.handlers.SessionHandler;
 import com.gravspace.handlers.TaskHandler;
 import com.gravspace.messages.RenderMessage;
 import com.gravspace.messages.RequestMessage;
@@ -73,6 +74,7 @@ public class CoordinatingActor extends UntypedActor {
 				Integer.parseInt((String) config.getProperty("dataaccesors", "5")), 
 				config,
 				getAccessorPackages(config)));
+		routerMap.put(Layers.SESSION, this.getContext().actorOf(Props.create(SessionHandler.class)));
 	}
 
 
@@ -90,7 +92,9 @@ public class CoordinatingActor extends UntypedActor {
 	private List<String> getCalculationPackages(Properties config) {
 		
 		String property = "scan-calculations";
-		return getAnnotatedPackages(config, property);
+		List<String> packages = getAnnotatedPackages(config, property);
+		packages.add("com.gravspace.calculation.form");
+		return packages;
 	}
 
 	private List<String> getAccessorPackages(Properties config) {
@@ -102,7 +106,9 @@ public class CoordinatingActor extends UntypedActor {
 	private List<String> getRenderPackages(Properties config) {
 		
 		String property = "scan-renderers";
-		return getAnnotatedPackages(config, property);
+		List<String> packages = getAnnotatedPackages(config, property);
+		packages.add("com.gravspace.defaults");
+		return packages;
 	}
 	
 	private List<String> getWidgetPackages(Properties config) {

@@ -32,8 +32,7 @@ public class ProfileWidget extends ComponentBase implements IComponent {
 
 	public void collect() {
 		IProfileDataAccessor dp = DataAccessors.get(IProfileDataAccessor.class, ProfileDataAccessor.class, this);
-		Promise<Object> wait = prepareSet();
-		set("profileContext", dp.getUserProfile(1), wait);//ask(new PersistanceMessage("doX", Arrays.asList(new Integer[]{1}))));
+		set("profileContext", dp.getUserProfile(1));//ask(new PersistanceMessage("doX", Arrays.asList(new Integer[]{1}))));
 
 		getLogger().info("collected");
 

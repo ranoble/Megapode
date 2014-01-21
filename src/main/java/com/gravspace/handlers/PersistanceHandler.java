@@ -58,7 +58,7 @@ public class PersistanceHandler extends UntypedActor {
 
 	@Override
 	public void onReceive(Object rawMessage) throws Exception {
-		log.info("PersistanceHandler got: "+rawMessage.getClass().getCanonicalName());
+//		log.info("PersistanceHandler got: "+rawMessage.getClass().getCanonicalName());
 		if (rawMessage instanceof PersistanceMessage){
 			PersistanceMessage message = (PersistanceMessage)rawMessage;
 

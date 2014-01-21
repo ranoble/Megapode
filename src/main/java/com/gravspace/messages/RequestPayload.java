@@ -1,29 +1,33 @@
 package com.gravspace.messages;
 
+import org.apache.http.Header;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
+import org.apache.http.RequestLine;
 import org.apache.http.protocol.HttpContext;
 
 public class RequestPayload {
-	final HttpRequest request;
-	final HttpResponse response;
-	final HttpContext context;
+	final RequestLine requestLine;
+	final Header[] headers;
+	final byte[] content;
 	
-	public RequestPayload(HttpContext context, HttpRequest request, HttpResponse response){
-		this.context = context;
-		this.request = request;
-		this.response = response;
+	public RequestPayload(RequestLine requestLine, Header[] headers, byte[] content){
+		this.requestLine = requestLine;
+		this.headers = headers;
+		this.content = content;
 	}
 
-	public HttpResponse getResponse() {
-		return response;
+	public RequestLine getRequestLine() {
+		return requestLine;
 	}
 
-	public HttpRequest getRequest() {
-		return request;
+	public Header[] getHeaders() {
+		return headers;
 	}
 
-	public HttpContext getContext() {
-		return context;
+	public byte[] getContent() {
+		return content;
 	}
+
+	
 }

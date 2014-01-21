@@ -5,6 +5,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.lang.StringUtils;
+import org.apache.http.Header;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.protocol.HttpContext;
@@ -26,6 +28,7 @@ import com.gravspace.abstractions.IPage;
 import com.gravspace.abstractions.PageRoute;
 import com.gravspace.exceptions.PageNotFoundException;
 import com.gravspace.messages.RequestMessage;
+import com.gravspace.messages.ResponseMessage;
 import com.gravspace.util.Layers;
 
 public class PageHandler extends UntypedActor {
@@ -39,22 +42,22 @@ public class PageHandler extends UntypedActor {
 		this.routers = routers;
 	}
 	
-	public IPage loadPage(String uri, HttpRequest request, HttpResponse response, HttpContext context) throws PageNotFoundException, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
-		Map<String, String> parameters = new HashMap<String, String>();
-		for (PageRoute route: pages){
-			if (route.getTemplate().match(uri, parameters)){
-				IPage page = route.getPageClass().getConstructor(Map.class, ActorRef.class, UntypedActorContext.class).newInstance(routers, getSender(), this.context());
-				page.initialise(request, 
-						response, 
-						context,
-						parameters
-						);
-				return page;
-			}
-		}
-		
-		throw new PageNotFoundException(String.format("Page matching [%s] not found", uri));
-	}
+//	public IPage loadPage(String uri, String method, String query, HttpResponse response, HttpContext context) throws PageNotFoundException, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
+//		Map<String, String> parameters = new HashMap<String, String>();
+//		for (PageRoute route: pages){
+//			if (route.getTemplate().match(uri, parameters)){
+//				IPage page = route.getPageClass().getConstructor(Map.class, ActorRef.class, UntypedActorContext.class).newInstance(routers, getSender(), this.context());
+//				page.initialise(request, 
+//						response, 
+//						context,
+//						parameters
+//						);
+//				return page;
+//			}
+//		}
+//		
+//		throw new PageNotFoundException(String.format("Page matching [%s] not found", uri));
+//	}
 
 	@Override
 	public void onReceive(Object rawMessage) throws Exception {
@@ -62,12 +65,19 @@ public class PageHandler extends UntypedActor {
 		if (rawMessage instanceof RequestMessage){
 			log.info("Handelling Request");
 			RequestMessage message = (RequestMessage)rawMessage;
-			HttpRequest request = message.getPayload().getRequest();
-			String uri = request.getRequestLine().getUri();
-			Future<String> rendered = null;
+			String uri = message.getPayload().getRequestLine().getUri();
+			String[] split = StringUtils.split(uri, "?", 2);
+			
+			String path = split[0];
+			String query = "";
+			if (split.length > 1){
+				query = split[1];
+			}
+//			 message.getPayload().getRequestLine().get
+			Future<ResponseMessage> rendered = null;
 			try {
-				IPage page = loadPage(uri, request, message.getPayload().getResponse(), message.getPayload().getContext());
-				rendered = build(page);
+				IPage page = loadPage(path, message.getPayload().getRequestLine().getMethod().toUpperCase(), query, message.getPayload().getHeaders(), message.getPayload().getContent());
+				rendered = page.build();
 			} catch (PageNotFoundException | InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException | SecurityException e){
 				log.error(String.format("Error in handelling [%s]", e.getClass().getCanonicalName()), e);
 				rendered = Futures.failed(e);
@@ -79,14 +89,25 @@ public class PageHandler extends UntypedActor {
 		}
 	}
 	
-	protected Future<String> build(IPage component) throws Exception {
-		Await.ready(component.await(), Duration.create(1, "minute"));
-		component.collect();
-		Await.ready(component.await(), Duration.create(1, "minute"));
-		component.process();
-		Await.ready(component.await(), Duration.create(1, "minute"));
-		Future<String> rendered = component.render();
-		return rendered;
+	private IPage loadPage(String path, String method, String query, Header[] headers, byte[] content) throws PageNotFoundException, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
+		Map<String, String> parameters = new HashMap<String, String>();
+		for (PageRoute route: pages){
+			if (route.getTemplate().match(path, parameters)){
+				IPage page = route.getPageClass().getConstructor(Map.class, ActorRef.class, UntypedActorContext.class).newInstance(routers, getSender(), this.context());
+				page.initialise(path, 
+						method,
+						query,
+						headers, 
+						content,
+						parameters
+						);
+				return page;
+			}
+		}
+		
+		throw new PageNotFoundException(String.format("Page matching [%s] not found", path));
 	}
+
+	
 
 }

@@ -23,7 +23,7 @@ import com.gravspace.proxy.DataAccessors;
 import com.gravspace.proxy.Tasks;
 import com.gravspace.util.Layers;
 
-@Page(path="/user/<user_id>/")
+@Page(path="/")
 public class ProfilePage extends PageBase {
 	
 	public ProfilePage(Map<Layers, ActorRef> routers,
@@ -45,7 +45,7 @@ public class ProfilePage extends PageBase {
 //		call(new TaskMessage("simple", Arrays.asList(new Integer[]{1, 2})));
 		IProfileDataAccessor dp = DataAccessors.get(IProfileDataAccessor.class, ProfileDataAccessor.class, this);
 		Promise<Object> setWait = prepareSet();
-		set("profileContext", dp.getUserProfile(1), setWait);//ask(new PersistanceMessage("doX", Arrays.asList(new Integer[]{1}))));
+		set("profileContext", dp.getUserProfile(1));//ask(new PersistanceMessage("doX", Arrays.asList(new Integer[]{1}))));
 //		set("profileContext", profileData);
 		getLogger().info("collected");
 	}

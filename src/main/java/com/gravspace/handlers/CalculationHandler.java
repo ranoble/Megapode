@@ -30,12 +30,12 @@ public class CalculationHandler extends UntypedActor {
 
 	@Override
 	public void onReceive(Object rawMessage) throws Exception {
-		log.info("CalculationHandler got: "+rawMessage.getClass().getCanonicalName());
+//		log.info("CalculationHandler got: "+rawMessage.getClass().getCanonicalName());
 		if (rawMessage instanceof CalculationMessage){
 			CalculationMessage message = (CalculationMessage)rawMessage;
 
 			String task_name = message.getTaskName();
-			log.info("CalculationHandler requested method task_name: "+task_name);
+//			log.info("CalculationHandler requested method task_name: "+task_name);
 			Class<? extends ICalculation> calculationClass = calculations.get(task_name);
 			Constructor<? extends ICalculation> constr = calculationClass.getConstructor(Map.class, ActorRef.class, UntypedActorContext.class);
 			ICalculation calculation = constr.newInstance(routers, getSender(), this.context());
