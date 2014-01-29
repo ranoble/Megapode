@@ -9,9 +9,9 @@ import java.util.List;
 
 import scala.concurrent.Future;
 
-import com.gravspace.abstractions.ConcurrantCallable;
 import com.gravspace.abstractions.ICalculation;
-import com.gravspace.abstractions.IPersistanceAccessor;
+import com.gravspace.abstractions.IDataAccessor;
+import com.gravspace.bases.ConcurrantCallable;
 import com.gravspace.messages.CalculationMessage;
 import com.gravspace.messages.PersistanceMessage;
 import com.gravspace.messages.TaskMessage;
@@ -41,7 +41,7 @@ public class DataAccessors {
 	}
 
 	@SuppressWarnings("unchecked")
-	public static <T> T get(Class<T> iface, Class<? extends IPersistanceAccessor> concrete, ConcurrantCallable caller) {
+	public static <T> T get(Class<T> iface, Class<? extends IDataAccessor> concrete, ConcurrantCallable caller) {
 		return (T) Proxy.newProxyInstance(
 				DataAccessors.class.getClassLoader(), new Class[] { iface },
 				new DataProxyImpl(caller, concrete.getCanonicalName()));

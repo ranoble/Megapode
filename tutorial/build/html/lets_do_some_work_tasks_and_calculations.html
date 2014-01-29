@@ -1,0 +1,151 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Lets do some Work, Tasks and Calculations. &mdash; megapode 0.1 documentation</title>
+    
+    <link rel="stylesheet" href="_static/haiku.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="megapode 0.1 documentation" href="index.html" />
+    <link rel="next" title="Template Rendering" href="template_rendering.html" />
+    <link rel="prev" title="Widgets" href="widgets.html" /> 
+  </head>
+  <body>
+      <div class="header"><h1 class="heading"><a href="index.html">
+          <span>megapode 0.1 documentation</span></a></h1>
+        <h2 class="heading"><span>Lets do some Work, Tasks and Calculations.</span></h2>
+      </div>
+      <div class="topnav">
+      
+        <p>
+        «&#160;&#160;<a href="widgets.html">Widgets</a>
+        &#160;&#160;::&#160;&#160;
+        <a class="uplink" href="index.html">Contents</a>
+        &#160;&#160;::&#160;&#160;
+        <a href="template_rendering.html">Template Rendering</a>&#160;&#160;»
+        </p>
+
+      </div>
+      <div class="content">
+        
+        
+  <div class="section" id="lets-do-some-work-tasks-and-calculations">
+<h1>Lets do some Work, Tasks and Calculations.<a class="headerlink" href="#lets-do-some-work-tasks-and-calculations" title="Permalink to this headline">¶</a></h1>
+<p>To recap, a Task is a fire and forget job, where we do not wait for a response, while
+a Calculation requires a response to be given.</p>
+<p>As always, you could skip all of the niceties, and write a raw message to be passed
+to one of these components, but there are safer and easier ways provided.</p>
+<p>As described in the section on Components, you will use the dynamic proxy mechanism
+to interact with the tasks and components.</p>
+<p>So, how does this work?</p>
+<div class="section" id="tasks">
+<h2>Tasks<a class="headerlink" href="#tasks" title="Permalink to this headline">¶</a></h2>
+<p>A Task, like a Page, must be annotated, using the com.gravspace.annotations.Task annotation.
+It must be scanned in a package defined in the config file.</p>
+<p>It must implement com.gravspace.abtractions.ITask, or extend com.gravspace.bases.TaskBase (preferred). Once again, if you don&#8217;t extend TaskBase then you&#8217;ll have to route the message
+to  the correct method yourself.</p>
+<p>Now, you will want to define the public methods you want on the task, and make sure that they all have void return values. You then need to define and interface that has the same method signatures as the tasks you need. You should implement that interface:</p>
+<div class="highlight-python"><div class="highlight"><pre>interface IWantToPerformATask {
+    void performRandomTask(String str, Integer _int);
+}
+
+@Task
+public class WantToPerformATaskImplementation extends TaskBase implements IWantToPerformATask {
+    public WantToPerformATaskImplementation(Map&lt;Layers, ActorRef&gt; routers,
+        ActorRef coordinatingActor, UntypedActorContext actorContext) {
+            super(routers, coordinatingActor, actorContext);
+    }
+
+    @Override
+    public void performRandomTask(String str, Integer _int){
+        ... do some task
+    }
+}
+</pre></div>
+</div>
+<p>Now, to <strong>use</strong> the task. From a Megapode Component, or extended ConcurrantCallable (all of the Components extend ConcurrantCallable), you need to &#8220;get&#8221; the proxy:</p>
+<div class="highlight-python"><div class="highlight"><pre>IWantToPerformATask task = Tasks.get(IWantToPerformATask.class, WantToPerformATaskImplementation.class, this);
+task.performRandomTask(&quot;Hello&quot;, 3);
+</pre></div>
+</div>
+<p>Tasks takes three arguments, the Interface class, the Implementation class and the calling
+ConcurrantCallable. Once you have the proxy, you can just call the method.</p>
+<p>This will send a message to the TaskHandler and handle the task asynchronously.
+<em>A task does not retain state.</em> So do not attempt to use properties.</p>
+</div>
+<div class="section" id="calculations">
+<h2>Calculations<a class="headerlink" href="#calculations" title="Permalink to this headline">¶</a></h2>
+<p>A calculation works identically to a task except that the calculation returns a future.</p>
+<p>So, in the same way, a Calculation must have the com.gravspace.annotation.Calculation
+annotation, implement com.gravspace.abstraction.ICalculation or preferably extend com.gravspace.bases.CaclulationBase.</p>
+<p>You would then define the Calculation methods you want to call, which <strong>must</strong> return
+Futures, and have the same in an interface.:</p>
+<div class="highlight-python"><div class="highlight"><pre>interface IDoSomeCalculation {
+    Future&lt;String&gt; calculateSomething(String str, Integer _int);
+}
+
+@Calculation
+public class DoSomeCalculationImplementation extends CalculationBase implements IDoSomeCalculation {
+    public DoSomeCalculationImplementation(Map&lt;Layers, ActorRef&gt; routers,
+        ActorRef coordinatingActor, UntypedActorContext actorContext) {
+            super(routers, coordinatingActor, actorContext);
+    }
+
+    @Override
+    public Future&lt;String&gt; calculateSomething(String str, Integer _int){
+        return Futures.success(String.format(&quot;%s: %d&quot;, str, _int));
+    }
+}
+</pre></div>
+</div>
+<p>Similarly, a calculation can be called from a ConcurrantCallable as such</p>
+<div class="highlight-python"><div class="highlight"><pre>IDoSomeCalculation calc = Tasks.get(IDoSomeCalculation.class, DoSomeCalculationImplementation.class, this);
+Future&lt;String&gt; future = calc.calculateSomething(&quot;Hello&quot;, 3);
+</pre></div>
+</div>
+<div class="section" id="handling-the-resultant-future">
+<h3>Handling the resultant Future<a class="headerlink" href="#handling-the-resultant-future" title="Permalink to this headline">¶</a></h3>
+<p>If the ConcurrantCallable is a Widget or a Page, then you could set the future to a
+property as defined in the last chapter. Alternatively, you will need to handle it
+using one of the other completion mechanism (also discussed in the previous section).</p>
+</div>
+</div>
+</div>
+
+
+      </div>
+      <div class="bottomnav">
+      
+        <p>
+        «&#160;&#160;<a href="widgets.html">Widgets</a>
+        &#160;&#160;::&#160;&#160;
+        <a class="uplink" href="index.html">Contents</a>
+        &#160;&#160;::&#160;&#160;
+        <a href="template_rendering.html">Template Rendering</a>&#160;&#160;»
+        </p>
+
+      </div>
+
+    <div class="footer">
+        &copy; Copyright 2014, Richard Noble.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.1.
+    </div>
+  </body>
+</html>

@@ -5,7 +5,7 @@ import java.util.Properties;
 import akka.actor.ActorRef;
 import akka.actor.Props;
 
-import com.gravspace.abstractions.ConcurrantCallable;
+import com.gravspace.bases.ConcurrantCallable;
 import com.gravspace.core.CoordinatingActor;
 import com.gravspace.messages.RouterMessage;
 import com.gravspace.messages.RouterResponseMessage;

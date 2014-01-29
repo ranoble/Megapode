@@ -3,21 +3,18 @@ package com.gravspace.page;
 import java.util.Map;
 
 import scala.concurrent.Future;
-import scala.concurrent.Promise;
-
 import akka.actor.ActorRef;
 import akka.actor.UntypedActorContext;
 import akka.dispatch.Futures;
 
-import com.gravspace.abstractions.IComponent;
 import com.gravspace.abstractions.IWidget;
 import com.gravspace.annotations.Widget;
-import com.gravspace.bases.ComponentBase;
+import com.gravspace.bases.WidgetBase;
 import com.gravspace.proxy.DataAccessors;
 import com.gravspace.util.Layers;
 
 @Widget
-public class ProfileWidget extends ComponentBase implements IComponent {
+public class ProfileWidget extends WidgetBase implements IWidget {
 
 	Map<String, Object> profileContext;
 	public ProfileWidget(Map<Layers, ActorRef> routers,

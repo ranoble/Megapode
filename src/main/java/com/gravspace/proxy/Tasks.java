@@ -7,8 +7,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import com.gravspace.abstractions.ConcurrantCallable;
 import com.gravspace.abstractions.ITask;
+import com.gravspace.bases.ConcurrantCallable;
 import com.gravspace.messages.TaskMessage;
 
 public class Tasks {

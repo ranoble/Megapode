@@ -23,7 +23,7 @@ import akka.dispatch.Futures;
 import akka.event.Logging;
 import akka.event.LoggingAdapter;
 
-import com.gravspace.abstractions.IComponent;
+import com.gravspace.abstractions.IWidget;
 import com.gravspace.abstractions.IPage;
 import com.gravspace.abstractions.PageRoute;
 import com.gravspace.exceptions.PageNotFoundException;

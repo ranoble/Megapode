@@ -1,0 +1,101 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Template Rendering &mdash; megapode 0.1 documentation</title>
+    
+    <link rel="stylesheet" href="_static/haiku.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="megapode 0.1 documentation" href="index.html" />
+    <link rel="next" title="Data Handling" href="data_handling.html" />
+    <link rel="prev" title="Lets do some Work, Tasks and Calculations." href="lets_do_some_work_tasks_and_calculations.html" /> 
+  </head>
+  <body>
+      <div class="header"><h1 class="heading"><a href="index.html">
+          <span>megapode 0.1 documentation</span></a></h1>
+        <h2 class="heading"><span>Template Rendering</span></h2>
+      </div>
+      <div class="topnav">
+      
+        <p>
+        «&#160;&#160;<a href="lets_do_some_work_tasks_and_calculations.html">Lets do some Work, Tasks and Calculations.</a>
+        &#160;&#160;::&#160;&#160;
+        <a class="uplink" href="index.html">Contents</a>
+        &#160;&#160;::&#160;&#160;
+        <a href="data_handling.html">Data Handling</a>&#160;&#160;»
+        </p>
+
+      </div>
+      <div class="content">
+        
+        
+  <div class="section" id="template-rendering">
+<h1>Template Rendering<a class="headerlink" href="#template-rendering" title="Permalink to this headline">¶</a></h1>
+<p>Megapode uses Velocity for it&#8217;s template rendering. Each actor has it&#8217;s own rendering engine,
+and they operate in isolation.</p>
+<p>Templates are placed in the classpath of the application.</p>
+<p>For most templates, the DefaultRenderer should suffice. But if not, you can define
+your own renderer
+Renderers are once again, annotated with com.gravspace.annotations.Renderer, and implement
+com.gravspace.abstractions.IRenderer or extend com.gravspace.bases.RendererBase.</p>
+<p>Unlike the Task or Calculations, the renderes only have one Interface, IRenderer,
+with the methods:</p>
+<div class="highlight-python"><div class="highlight"><pre>// if we don&#39;t have a defined Template Name
+Future&lt;String&gt; render(String template, Map&lt;String, ?&gt; context);
+
+//if we already have a defined Template Name
+Future&lt;String&gt; render(Map&lt;String, ?&gt; context);
+</pre></div>
+</div>
+<p>Therefore from a ConcurrentCallable the proxy has two get methods:</p>
+<div class="highlight-python"><div class="highlight"><pre>IRenderer renderer = Renderers.getDefault(this);
+// or
+IRenderer renderer = Renderers.getDefault(RendererClass.class, this);
+</pre></div>
+</div>
+<p>The default renderer is therefore used as such</p>
+<div class="highlight-python"><div class="highlight"><pre>IRenderer renderer = Renderers.getDefault(this);
+Map&lt;String, Object&gt; context = new HashMap&lt;String, Object&gt;();
+context.put(&quot;obj&quot;, &quot;obj&quot;);
+Future&lt;String&gt; rendered_template = renderer.render(&quot;template.your.hompage.html&quot;, context);
+</pre></div>
+</div>
+</div>
+
+
+      </div>
+      <div class="bottomnav">
+      
+        <p>
+        «&#160;&#160;<a href="lets_do_some_work_tasks_and_calculations.html">Lets do some Work, Tasks and Calculations.</a>
+        &#160;&#160;::&#160;&#160;
+        <a class="uplink" href="index.html">Contents</a>
+        &#160;&#160;::&#160;&#160;
+        <a href="data_handling.html">Data Handling</a>&#160;&#160;»
+        </p>
+
+      </div>
+
+    <div class="footer">
+        &copy; Copyright 2014, Richard Noble.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.1.
+    </div>
+  </body>
+</html>

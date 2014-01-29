@@ -1,0 +1,147 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Create a basic Page &mdash; megapode 0.1 documentation</title>
+    
+    <link rel="stylesheet" href="_static/haiku.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="megapode 0.1 documentation" href="index.html" />
+    <link rel="next" title="Components, Blocking, Futures, and things you should know..." href="blocking_futures_things_you_should_know.html" />
+    <link rel="prev" title="Setup" href="setup.html" /> 
+  </head>
+  <body>
+      <div class="header"><h1 class="heading"><a href="index.html">
+          <span>megapode 0.1 documentation</span></a></h1>
+        <h2 class="heading"><span>Create a basic Page</span></h2>
+      </div>
+      <div class="topnav">
+      
+        <p>
+        «&#160;&#160;<a href="setup.html">Setup</a>
+        &#160;&#160;::&#160;&#160;
+        <a class="uplink" href="index.html">Contents</a>
+        &#160;&#160;::&#160;&#160;
+        <a href="blocking_futures_things_you_should_know.html">Components, Blocking, Futures, and things you should know...</a>&#160;&#160;»
+        </p>
+
+      </div>
+      <div class="content">
+        
+        
+  <div class="section" id="create-a-basic-page">
+<h1>Create a basic Page<a class="headerlink" href="#create-a-basic-page" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="the-package-setup">
+<h2>1. The Package Setup<a class="headerlink" href="#the-package-setup" title="Permalink to this headline">¶</a></h2>
+<p>Before we start building a page, we need to check that we have created a package for the
+Page to be scanned in. So go ahead and create a package, your.package.name.page.
+Next, check that you have added this package to your config file.:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">scan</span><span class="o">-</span><span class="n">pages</span><span class="o">=</span><span class="n">com</span><span class="o">.</span><span class="n">gravspace</span><span class="o">.</span><span class="n">sandbox</span><span class="o">.</span><span class="n">page</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="create-a-new-page">
+<h2>2. Create a new Page<a class="headerlink" href="#create-a-new-page" title="Permalink to this headline">¶</a></h2>
+<p>To make a page available to Megapode, there a few things you will need to do.</p>
+<blockquote>
+<div><ul class="simple">
+<li>Create a class</li>
+<li>Annotate the class as a [com.gravspace.annotations.]Page.</li>
+<li>Configure routing for the page</li>
+<li>Implement [com.gravspace.abstractions.]IPage or one of it&#8217;s implementations.</li>
+</ul>
+</div></blockquote>
+<p>We&#8217;ll handle these in logical groups.</p>
+<div class="section" id="the-annotation-and-routing">
+<h3>2.1. The annotation and routing<a class="headerlink" href="#the-annotation-and-routing" title="Permalink to this headline">¶</a></h3>
+<p>The Page annotation has two function, first is to flag the class as a page, and the
+second is define the route for the Page.</p>
+<p>The annotation has a path directive for this purpose. It uses the Jersey path matching
+structure.</p>
+<p>So to define a base root path, annotate your page class as follows:</p>
+<div class="highlight-python"><div class="highlight"><pre>@Page(path=&quot;/&quot;)
+public class YourPage {}
+</pre></div>
+</div>
+<p>And to add an article page, your could define something like:</p>
+<div class="highlight-python"><div class="highlight"><pre>@Page(path=&quot;/article/{articleId}&quot;)
+public class ArticlePage {}
+</pre></div>
+</div>
+<p>articleId will then be made available to you in a map. This will be demonstrated in
+next section.</p>
+</div>
+<div class="section" id="implement-ipage">
+<h3>2.2 Implement IPage<a class="headerlink" href="#implement-ipage" title="Permalink to this headline">¶</a></h3>
+<p>One of the ideals of Megapode is that the framework should not limit the developer,
+so you <em>could</em> simply implement IPage and wire up the implementation yourself. But
+the framework provides a much simpler framework for this.</p>
+<p>Simply extend com.gravspace.bases.PageBase. This will provide the core functionality
+to the page. This includes method extraction, basic form handling, session handling,
+as well as message handling.</p>
+<p>There are a number of default methods for a page, and they&#8217;ll be discussed in the next
+section.</p>
+<p>So change your class to look something like this</p>
+<div class="highlight-python"><div class="highlight"><pre>@Page(path=&quot;/&quot;)
+public class HomePage extends PageBase {
+    public HomePage(Map&lt;Layers, ActorRef&gt; routers, ActorRef coordinatingActor,
+        UntypedActorContext actorContext) {
+        super(routers, coordinatingActor, actorContext);
+    }
+
+    @Override
+    public void process() {}
+
+    @Override
+    public Future&lt;String&gt; render() throws Exception {
+        return Futures.success(&quot;&lt;html&gt;&lt;body&gt;Hello World!&lt;/body&gt;&lt;/html&gt;&quot;)
+    }
+}
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="check-your-page">
+<h2>3. Check your Page<a class="headerlink" href="#check-your-page" title="Permalink to this headline">¶</a></h2>
+<p>You now have a fully functional Megapode Page. Just start your server, and go to
+your path.</p>
+</div>
+</div>
+
+
+      </div>
+      <div class="bottomnav">
+      
+        <p>
+        «&#160;&#160;<a href="setup.html">Setup</a>
+        &#160;&#160;::&#160;&#160;
+        <a class="uplink" href="index.html">Contents</a>
+        &#160;&#160;::&#160;&#160;
+        <a href="blocking_futures_things_you_should_know.html">Components, Blocking, Futures, and things you should know...</a>&#160;&#160;»
+        </p>
+
+      </div>
+
+    <div class="footer">
+        &copy; Copyright 2014, Richard Noble.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.1.
+    </div>
+  </body>
+</html>

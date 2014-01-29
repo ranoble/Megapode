@@ -15,18 +15,18 @@ import akka.dispatch.Futures;
 import akka.event.Logging;
 import akka.event.LoggingAdapter;
 
-import com.gravspace.abstractions.IComponent;
+import com.gravspace.abstractions.IWidget;
 import com.gravspace.messages.ComponentMessage;
 import com.gravspace.util.Layers;
 import static akka.dispatch.Futures.future;
 
 public class ComponentHandler extends UntypedActor {
 	LoggingAdapter log = Logging.getLogger(getContext().system(), this);
-	Map<String, Class<? extends IComponent>> components;
+	Map<String, Class<? extends IWidget>> components;
 	Map<String, ActorRef> routes;
 	private Map<Layers, ActorRef> routers;
 	
-	public ComponentHandler(Map<Layers, ActorRef> routers, Map<String, Class<? extends IComponent>> components){
+	public ComponentHandler(Map<Layers, ActorRef> routers, Map<String, Class<? extends IWidget>> components){
 		this.components = components;
 		this.routers = routers;
 	}
@@ -41,7 +41,7 @@ public class ComponentHandler extends UntypedActor {
 				final ComponentMessage message = (ComponentMessage)rawMessage;
 				rendered = future(new Callable<String>() {
 					  public String call() throws Exception {
-						  IComponent component = components.get(message.getRouteToken()).getConstructor(Map.class, ActorRef.class, UntypedActorContext.class).newInstance(routers, getSender(), context());
+						  IWidget component = components.get(message.getRouteToken()).getConstructor(Map.class, ActorRef.class, UntypedActorContext.class).newInstance(routers, getSender(), context());
 						  component.initialise(message.getParameters().toArray(new Object[0]));
 						  return build(component);
 					  }
@@ -57,7 +57,7 @@ public class ComponentHandler extends UntypedActor {
 		}
 	}
 
-	protected String build(IComponent component) throws Exception {
+	protected String build(IWidget component) throws Exception {
 		Await.ready(component.await(), Duration.create(1, "minute"));
 		component.collect();
 		Await.ready(component.await(), Duration.create(1, "minute"));

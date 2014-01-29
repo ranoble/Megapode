@@ -1,0 +1,172 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Setup &mdash; megapode 0.1 documentation</title>
+    
+    <link rel="stylesheet" href="_static/haiku.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="megapode 0.1 documentation" href="index.html" />
+    <link rel="next" title="Create a basic Page" href="your_first_page.html" />
+    <link rel="prev" title="Quick Start" href="intro.html" /> 
+  </head>
+  <body>
+      <div class="header"><h1 class="heading"><a href="index.html">
+          <span>megapode 0.1 documentation</span></a></h1>
+        <h2 class="heading"><span>Setup</span></h2>
+      </div>
+      <div class="topnav">
+      
+        <p>
+        «&#160;&#160;<a href="intro.html">Quick Start</a>
+        &#160;&#160;::&#160;&#160;
+        <a class="uplink" href="index.html">Contents</a>
+        &#160;&#160;::&#160;&#160;
+        <a href="your_first_page.html">Create a basic Page</a>&#160;&#160;»
+        </p>
+
+      </div>
+      <div class="content">
+        
+        
+  <div class="section" id="setup">
+<h1>Setup<a class="headerlink" href="#setup" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="first-steps">
+<h2>1. First Steps<a class="headerlink" href="#first-steps" title="Permalink to this headline">¶</a></h2>
+<blockquote>
+<div><ul class="simple">
+<li>Create a database, username and password.</li>
+<li>Get Maven installed and set up.</li>
+<li>Make sure that you are using Java 7 or greater.</li>
+</ul>
+</div></blockquote>
+</div>
+<div class="section" id="import-the-megapode-dependancy">
+<h2>2. Import the Megapode dependancy<a class="headerlink" href="#import-the-megapode-dependancy" title="Permalink to this headline">¶</a></h2>
+<p>To make the setup as quick and easy as possibly, we have set up a public maven
+repository that you can import Megapode.</p>
+<p>Simply add the following to your repositories section of your POM:</p>
+<div class="highlight-python"><div class="highlight"><pre>&lt;repository&gt;
+    &lt;id&gt;megapode-snapshots&lt;/id&gt;
+    &lt;name&gt;Megapode Snapshots&lt;/name&gt;
+    &lt;url&gt;http://188.226.142.220:8081/nexus/content/repositories/megapode-snapshot/&lt;/url&gt;
+&lt;/repository&gt;
+</pre></div>
+</div>
+<p>Next, add the dependancy in the dependancies section:</p>
+<div class="highlight-python"><div class="highlight"><pre>&lt;dependency&gt;
+    &lt;groupId&gt;com.gravspace&lt;/groupId&gt;
+    &lt;artifactId&gt;megapode&lt;/artifactId&gt;
+    &lt;version&gt;0.0.1-SNAPSHOT&lt;/version&gt;
+&lt;/dependency&gt;
+</pre></div>
+</div>
+</div>
+<div class="section" id="create-a-configuration-file">
+<h2>3. Create a configuration  file<a class="headerlink" href="#create-a-configuration-file" title="Permalink to this headline">¶</a></h2>
+<p>By default the configuration is controlled by the property file megapode.conf,
+packaged in the application package. You can override this by pointing the application
+at a file on the local filesystem. Create this file in your src/main/resources.</p>
+<p>This is a sample:</p>
+<div class="highlight-python"><div class="highlight"><pre># scans for application setup
+scan-tasks=com.gravspace.sandbox.task
+scan-calculations=com.gravspace.sandbox.calculation
+scan-dataaccessors=com.gravspace.sandbox.data
+scan-renderers=com.gravspace.defaults
+scan-widgets=com.gravspace.sandbox.widget
+scan-pages=com.gravspace.sandbox.page
+
+# actor setup
+pages=5
+tasks=5
+calculations=5
+widgets=5
+renders=5
+dataaccessors=5
+
+#database
+user=postgres
+password=postgres
+url=jdbc:postgresql://xxx.xxx.xxx.xx/megapode_test
+</pre></div>
+</div>
+<div class="section" id="the-scanner-section">
+<h3>3.1. The Scanner Section<a class="headerlink" href="#the-scanner-section" title="Permalink to this headline">¶</a></h3>
+<p>Each component in Megapode is annotated according to it&#8217;s type, and the packages
+defined here are scanned for these annotations. If an annotation is found, then that
+class is loaded as that component type. This will be discussed in more detail, but
+for now, just create a task, calculation, data, renderer, widget and page package,
+and set the scanners accordingly.</p>
+</div>
+<div class="section" id="the-actor-section">
+<h3>3.2 The Actor Section<a class="headerlink" href="#the-actor-section" title="Permalink to this headline">¶</a></h3>
+<p>Each component type has an actor pool that is created to handle messages for that
+section. This allows tasks to be distributed. Each actor is persistent, and will
+remain active and listening for tasks as needed.  Leave them as they are, but if you
+don&#8217;t have a database, then you can just set the dataaccessors to zero.</p>
+</div>
+<div class="section" id="the-database-section">
+<h3>3.3 The Database Section<a class="headerlink" href="#the-database-section" title="Permalink to this headline">¶</a></h3>
+<p>This is only used if the dataaccessors &gt; 0. It uses standard JDBC syntax, and you should
+remember to include the relevant driver dependancy.</p>
+</div>
+</div>
+<div class="section" id="create-your-http-server">
+<h2>4. Create your HTTP Server<a class="headerlink" href="#create-your-http-server" title="Permalink to this headline">¶</a></h2>
+<p>As megapode has an embedded HTTP Server, you&#8217;ll need to create a runner, and potentially
+modify how it runs.</p>
+<p>Create a class that runs  HttpServer.start(Object...) in the main method</p>
+<p>This should suffice for now...</p>
+<div class="highlight-python"><div class="highlight"><pre>package your.package.name;
+
+import com.gravspace.core.HttpServer;
+
+public class Server {
+    public static void main(String[] args) throws Exception {
+        HttpServer.start(args);
+    }
+}
+</pre></div>
+</div>
+<p>You can now run the server, which, by default runs on port 8082.</p>
+<p>Once you have checked that the server runs, we can move on to create our first Megapode page!</p>
+</div>
+</div>
+
+
+      </div>
+      <div class="bottomnav">
+      
+        <p>
+        «&#160;&#160;<a href="intro.html">Quick Start</a>
+        &#160;&#160;::&#160;&#160;
+        <a class="uplink" href="index.html">Contents</a>
+        &#160;&#160;::&#160;&#160;
+        <a href="your_first_page.html">Create a basic Page</a>&#160;&#160;»
+        </p>
+
+      </div>
+
+    <div class="footer">
+        &copy; Copyright 2014, Richard Noble.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.1.
+    </div>
+  </body>
+</html>

@@ -1,0 +1,94 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Widgets &mdash; megapode 0.1 documentation</title>
+    
+    <link rel="stylesheet" href="_static/haiku.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="megapode 0.1 documentation" href="index.html" />
+    <link rel="next" title="Lets do some Work, Tasks and Calculations." href="lets_do_some_work_tasks_and_calculations.html" />
+    <link rel="prev" title="Components, Blocking, Futures, and things you should know..." href="blocking_futures_things_you_should_know.html" /> 
+  </head>
+  <body>
+      <div class="header"><h1 class="heading"><a href="index.html">
+          <span>megapode 0.1 documentation</span></a></h1>
+        <h2 class="heading"><span>Widgets</span></h2>
+      </div>
+      <div class="topnav">
+      
+        <p>
+        «&#160;&#160;<a href="blocking_futures_things_you_should_know.html">Components, Blocking, Futures, and things you should know...</a>
+        &#160;&#160;::&#160;&#160;
+        <a class="uplink" href="index.html">Contents</a>
+        &#160;&#160;::&#160;&#160;
+        <a href="lets_do_some_work_tasks_and_calculations.html">Lets do some Work, Tasks and Calculations.</a>&#160;&#160;»
+        </p>
+
+      </div>
+      <div class="content">
+        
+        
+  <div class="section" id="widgets">
+<h1>Widgets<a class="headerlink" href="#widgets" title="Permalink to this headline">¶</a></h1>
+<p>Widgets are parts of a page, that will be rendered. They can be a profile block,
+a comments feed, a comment in</p>
+<p>Like Pages, Widgets make use of the coordinated blocking system, described in
+the Blocking and Components section.</p>
+<p>They follow a set pattern of method calls:</p>
+<blockquote>
+<div><ul class="simple">
+<li>contruct</li>
+<li>initialise</li>
+<li>collect</li>
+<li>prepare</li>
+<li>render</li>
+</ul>
+</div></blockquote>
+<p>In the same way as pages, any calls to other components will finish
+before the next method is called. Unlike Pages, however, Widgets are can be called
+from another component, using the the Widgets proxy.</p>
+<p>Like other components, Widgets need to have the Widget annotation, and implement IWidget,
+or extend WidgetBase.</p>
+<p>There is only one method, the build method. This takes the arguments passed into the
+method, and (after the message passing), uses them to initialise the widget.</p>
+<p>It then follows the defined flow.</p>
+</div>
+
+
+      </div>
+      <div class="bottomnav">
+      
+        <p>
+        «&#160;&#160;<a href="blocking_futures_things_you_should_know.html">Components, Blocking, Futures, and things you should know...</a>
+        &#160;&#160;::&#160;&#160;
+        <a class="uplink" href="index.html">Contents</a>
+        &#160;&#160;::&#160;&#160;
+        <a href="lets_do_some_work_tasks_and_calculations.html">Lets do some Work, Tasks and Calculations.</a>&#160;&#160;»
+        </p>
+
+      </div>
+
+    <div class="footer">
+        &copy; Copyright 2014, Richard Noble.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.1.
+    </div>
+  </body>
+</html>

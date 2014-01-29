@@ -15,18 +15,18 @@ import akka.actor.UntypedActorContext;
 import akka.event.Logging;
 import akka.event.LoggingAdapter;
 
-import com.gravspace.abstractions.IPersistanceAccessor;
+import com.gravspace.abstractions.IDataAccessor;
 import com.gravspace.messages.PersistanceMessage;
 import com.gravspace.util.Layers;
 
 public class PersistanceHandler extends UntypedActor {
 	LoggingAdapter log = Logging.getLogger(getContext().system(), this);
-	Map<String, Class<? extends IPersistanceAccessor>> persistanceTasks;
+	Map<String, Class<? extends IDataAccessor>> persistanceTasks;
 	private Map<Layers, ActorRef> routers;
 	private Connection connection;
 	
 	public PersistanceHandler(Map<Layers, ActorRef> routers, 
-			Map<String, Class<? extends IPersistanceAccessor>> persistanceTasks,
+			Map<String, Class<? extends IDataAccessor>> persistanceTasks,
 			Properties connectionDetails){
 		this.persistanceTasks = persistanceTasks;
 		this.routers = routers;
@@ -63,9 +63,9 @@ public class PersistanceHandler extends UntypedActor {
 			PersistanceMessage message = (PersistanceMessage)rawMessage;
 
 			String task_name = message.getPersistanceTask();
-			Class<? extends IPersistanceAccessor> calculationClass = persistanceTasks.get(task_name);
-			Constructor<? extends IPersistanceAccessor> constr = calculationClass.getConstructor(Map.class, ActorRef.class, UntypedActorContext.class, Connection.class);
-			IPersistanceAccessor persistor = constr.newInstance(routers, getSender(), this.context(), this.connection);
+			Class<? extends IDataAccessor> calculationClass = persistanceTasks.get(task_name);
+			Constructor<? extends IDataAccessor> constr = calculationClass.getConstructor(Map.class, ActorRef.class, UntypedActorContext.class, Connection.class);
+			IDataAccessor persistor = constr.newInstance(routers, getSender(), this.context(), this.connection);
 			
 			Future<Object> result = (Future<Object>) persistor.performTask(message.getArgs().toArray(new Object[0]));//.calculate(message.getArgs().toArray(new Object[0]));
 			//Pattern.

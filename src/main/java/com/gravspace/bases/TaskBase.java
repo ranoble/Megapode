@@ -10,7 +10,6 @@ import java.util.Map;
 import akka.actor.ActorRef;
 import akka.actor.UntypedActorContext;
 
-import com.gravspace.abstractions.ConcurrantCallable;
 import com.gravspace.abstractions.ITask;
 import com.gravspace.util.Layers;
 import com.gravspace.util.TypeUtils;

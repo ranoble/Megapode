@@ -15,7 +15,6 @@ import akka.actor.ActorRef;
 import akka.actor.UntypedActorContext;
 import akka.dispatch.Futures;
 
-import com.gravspace.abstractions.ConcurrantCallable;
 import com.gravspace.abstractions.IRenderer;
 import com.gravspace.util.Layers;
 

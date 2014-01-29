@@ -14,7 +14,7 @@ import akka.actor.ActorRef;
 import akka.actor.UntypedActorContext;
 import akka.dispatch.Futures;
 
-import com.gravspace.abstractions.IPersistanceAccessor;
+import com.gravspace.abstractions.IDataAccessor;
 import com.gravspace.annotations.PersistanceAccessor;
 import com.gravspace.bases.PersistanceBase;
 import com.gravspace.util.Layers;
@@ -22,7 +22,7 @@ import com.gravspace.util.Layers;
 
 @PersistanceAccessor
 public class ProfileDataAccessor extends PersistanceBase implements
-		IPersistanceAccessor, IProfileDataAccessor {
+		IDataAccessor, IProfileDataAccessor {
 
 	public ProfileDataAccessor(Map<Layers, ActorRef> routers,
 			ActorRef coordinatingActor, UntypedActorContext actorContext,

@@ -9,8 +9,8 @@ import java.util.List;
 
 import scala.concurrent.Future;
 
-import com.gravspace.abstractions.ConcurrantCallable;
 import com.gravspace.abstractions.ICalculation;
+import com.gravspace.bases.ConcurrantCallable;
 import com.gravspace.messages.CalculationMessage;
 
 public class Calculations {

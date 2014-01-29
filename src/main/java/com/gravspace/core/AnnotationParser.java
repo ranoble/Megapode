@@ -12,9 +12,9 @@ import java.util.Set;
 import org.reflections.Reflections;
 
 import com.gravspace.abstractions.ICalculation;
-import com.gravspace.abstractions.IComponent;
+import com.gravspace.abstractions.IWidget;
 import com.gravspace.abstractions.IPage;
-import com.gravspace.abstractions.IPersistanceAccessor;
+import com.gravspace.abstractions.IDataAccessor;
 import com.gravspace.abstractions.IRenderer;
 import com.gravspace.abstractions.ITask;
 import com.gravspace.abstractions.PageRoute;
@@ -70,16 +70,16 @@ public class AnnotationParser {
 		return calculationSet;
 	}
 
-	public static List<Class<? extends IPersistanceAccessor>> getAnnotatedDataAccessors(
+	public static List<Class<? extends IDataAccessor>> getAnnotatedDataAccessors(
 			List<String> packages) {
-		List<Class<? extends IPersistanceAccessor>> calculationSet = new ArrayList<Class<? extends IPersistanceAccessor>>();
+		List<Class<? extends IDataAccessor>> calculationSet = new ArrayList<Class<? extends IDataAccessor>>();
 		for (String pkg: packages){
 			Reflections reflections = new Reflections(pkg);
 			Set<Class<?>> tasks = 
 		               reflections.getTypesAnnotatedWith(PersistanceAccessor.class);
 			for (Class<?> task: tasks){
-				if (IPersistanceAccessor.class.isAssignableFrom(task)){
-					calculationSet.add((Class<IPersistanceAccessor>) task);
+				if (IDataAccessor.class.isAssignableFrom(task)){
+					calculationSet.add((Class<IDataAccessor>) task);
 				}
 			}
 		}
@@ -103,16 +103,16 @@ public class AnnotationParser {
 	}
 
 	//we can use generics to clean this up with T and the like....
-	public static List<Class<? extends IComponent>> getAnnotatedWidgets(
+	public static List<Class<? extends IWidget>> getAnnotatedWidgets(
 			List<String> packages) {
-		List<Class<? extends IComponent>> calculationSet = new ArrayList<Class<? extends IComponent>>();
+		List<Class<? extends IWidget>> calculationSet = new ArrayList<Class<? extends IWidget>>();
 		for (String pkg: packages){
 			Reflections reflections = new Reflections(pkg);
 			Set<Class<?>> tasks = 
 		               reflections.getTypesAnnotatedWith(Widget.class);
 			for (Class<?> task: tasks){
-				if (IComponent.class.isAssignableFrom(task)){
-					calculationSet.add((Class<IComponent>) task);
+				if (IWidget.class.isAssignableFrom(task)){
+					calculationSet.add((Class<IWidget>) task);
 				}
 			}
 		}

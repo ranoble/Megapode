@@ -37,7 +37,7 @@ import com.gravspace.util.Layers;
 
 
 
-public abstract class PageBase  extends ComponentBase implements IPage {
+public abstract class PageBase  extends WidgetBase implements IPage {
 	protected Map<String, String> params;
 	protected String method;
 	protected String path;
@@ -75,7 +75,7 @@ public abstract class PageBase  extends ComponentBase implements IPage {
 	}
 	
 	public void runPreflightSetup(){
-		final Promise<Object> delay = prepareSet();
+		final Promise<Object> delay = delayUntilComplete();
 		ICookieParser cookieParser = Calculations.get(ICookieParser.class, CookieParser.class, this);
 		Future<Map<String, String>> parser = cookieParser.parseCookies(requestHeaders);
 		set("requestCookies", parser);

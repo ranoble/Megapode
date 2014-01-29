@@ -1,6 +1,6 @@
 package core;
 
-import com.gravspace.abstractions.ConcurrantCallable;
+import com.gravspace.bases.ConcurrantCallable;
 
 public class CallableContainer {
 	ConcurrantCallable callable;

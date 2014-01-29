@@ -44,7 +44,7 @@ public class ProfilePage extends PageBase {
 		task.logTask("Richard!");
 //		call(new TaskMessage("simple", Arrays.asList(new Integer[]{1, 2})));
 		IProfileDataAccessor dp = DataAccessors.get(IProfileDataAccessor.class, ProfileDataAccessor.class, this);
-		Promise<Object> setWait = prepareSet();
+		Promise<Object> setWait = delayUntilComplete();
 		set("profileContext", dp.getUserProfile(1));//ask(new PersistanceMessage("doX", Arrays.asList(new Integer[]{1}))));
 //		set("profileContext", profileData);
 		getLogger().info("collected");

@@ -2,7 +2,7 @@ package core;
 
 import java.util.Map;
 
-import com.gravspace.abstractions.ConcurrantCallable;
+import com.gravspace.bases.ConcurrantCallable;
 import com.gravspace.util.Layers;
 
 import akka.actor.ActorRef;

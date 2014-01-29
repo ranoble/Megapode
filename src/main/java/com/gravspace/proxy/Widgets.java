@@ -9,10 +9,10 @@ import java.util.List;
 
 import scala.concurrent.Future;
 
-import com.gravspace.abstractions.ConcurrantCallable;
 import com.gravspace.abstractions.ICalculation;
-import com.gravspace.abstractions.IComponent;
 import com.gravspace.abstractions.IWidget;
+import com.gravspace.abstractions.Widget;
+import com.gravspace.bases.ConcurrantCallable;
 import com.gravspace.messages.CalculationMessage;
 import com.gravspace.messages.ComponentMessage;
 
@@ -42,9 +42,9 @@ public class Widgets {
 	}
 
 	@SuppressWarnings("unchecked")
-	public static IWidget get(Class<? extends IComponent> concrete, ConcurrantCallable caller) {
-		return (IWidget)Proxy.newProxyInstance(
-				Widgets.class.getClassLoader(), new Class[] { IWidget.class },
+	public static Widget get(Class<? extends IWidget> concrete, ConcurrantCallable caller) {
+		return (Widget)Proxy.newProxyInstance(
+				Widgets.class.getClassLoader(), new Class[] { Widget.class },
 				new ComponentProxyImpl(caller, concrete.getCanonicalName()));
 	}
 

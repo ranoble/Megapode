@@ -23,10 +23,10 @@ import akka.routing.SmallestMailboxRouter;
 import akka.util.Timeout;
 
 import com.gravspace.abstractions.ICalculation;
-import com.gravspace.abstractions.IComponent;
+import com.gravspace.abstractions.IWidget;
 import com.gravspace.abstractions.IPage;
 import com.gravspace.abstractions.PageRoute;
-import com.gravspace.abstractions.IPersistanceAccessor;
+import com.gravspace.abstractions.IDataAccessor;
 import com.gravspace.abstractions.IRenderer;
 import com.gravspace.abstractions.ITask;
 import com.gravspace.handlers.CalculationHandler;
@@ -156,9 +156,9 @@ public class CoordinatingActor extends UntypedActor {
 	
 	private ActorRef generateDataRouter(int actors, Properties config, List<String> dataPackages) {	
 		List<ActorRef> dataActors = new ArrayList<ActorRef>();
-		Map<String, Class<? extends IPersistanceAccessor>> routers = new HashMap<String, Class<? extends IPersistanceAccessor>>();
-		List<Class<? extends IPersistanceAccessor>> accessors = AnnotationParser.getAnnotatedDataAccessors(dataPackages);
-		for (Class<? extends IPersistanceAccessor> accessor: accessors){
+		Map<String, Class<? extends IDataAccessor>> routers = new HashMap<String, Class<? extends IDataAccessor>>();
+		List<Class<? extends IDataAccessor>> accessors = AnnotationParser.getAnnotatedDataAccessors(dataPackages);
+		for (Class<? extends IDataAccessor> accessor: accessors){
 			log.info(String.format("Registering accessor: [%s]", accessor.getCanonicalName()));
 			routers.put(accessor.getCanonicalName(), accessor);
 		}
@@ -201,9 +201,9 @@ public class CoordinatingActor extends UntypedActor {
 	
 	private ActorRef generateComponentRouter(int actors, List<String> calcPackages) {
 		List<ActorRef> widgetActors = new ArrayList<ActorRef>();
-		Map<String, Class<? extends IComponent>> routers = new HashMap<String, Class<? extends IComponent>>();
-		List<Class<? extends IComponent>> widgets = AnnotationParser.getAnnotatedWidgets(calcPackages);
-		for (Class<? extends IComponent> widget: widgets){
+		Map<String, Class<? extends IWidget>> routers = new HashMap<String, Class<? extends IWidget>>();
+		List<Class<? extends IWidget>> widgets = AnnotationParser.getAnnotatedWidgets(calcPackages);
+		for (Class<? extends IWidget> widget: widgets){
 			log.info(String.format("Registering widget: [%s]", widget.getCanonicalName()));
 			routers.put(widget.getCanonicalName(), widget);
 		}

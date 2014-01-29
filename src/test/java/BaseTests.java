@@ -21,9 +21,9 @@ import akka.pattern.Patterns;
 import akka.testkit.JavaTestKit;
 import akka.util.Timeout;
 
-import com.gravspace.abstractions.ConcurrantCallable;
 import com.gravspace.abstractions.IRenderer;
-import com.gravspace.abstractions.IWidget;
+import com.gravspace.abstractions.Widget;
+import com.gravspace.bases.ConcurrantCallable;
 import com.gravspace.impl.tasks.IProfileCalculation;
 import com.gravspace.messages.RouterMessage;
 import com.gravspace.messages.RouterResponseMessage;
@@ -132,7 +132,7 @@ public class BaseTests{
 	public void testWidget() throws Exception {
 		new JavaTestKit(system) {
 			{
-				IWidget data = Widgets.get(ProfileWidget.class, cc.getCallable());//getDefaultRender(cc.getCallable());
+				Widget data = Widgets.get(ProfileWidget.class, cc.getCallable());//getDefaultRender(cc.getCallable());
 
 				Future<String> result = data.build(1, 2, 3);
 				

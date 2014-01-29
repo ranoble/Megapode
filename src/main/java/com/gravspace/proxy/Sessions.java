@@ -12,11 +12,11 @@ import scala.concurrent.Future;
 import akka.actor.ActorRef;
 import akka.pattern.Patterns;
 
-import com.gravspace.abstractions.ConcurrantCallable;
 import com.gravspace.abstractions.ICalculation;
-import com.gravspace.abstractions.IComponent;
-import com.gravspace.abstractions.ISession;
 import com.gravspace.abstractions.IWidget;
+import com.gravspace.abstractions.ISession;
+import com.gravspace.abstractions.Widget;
+import com.gravspace.bases.ConcurrantCallable;
 import com.gravspace.messages.CalculationMessage;
 import com.gravspace.messages.ComponentMessage;
 import com.gravspace.messages.GetSessionVar;

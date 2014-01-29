@@ -1,0 +1,145 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Data Handling &mdash; megapode 0.1 documentation</title>
+    
+    <link rel="stylesheet" href="_static/haiku.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="megapode 0.1 documentation" href="index.html" />
+    <link rel="next" title="Sessions" href="sessions.html" />
+    <link rel="prev" title="Template Rendering" href="template_rendering.html" /> 
+  </head>
+  <body>
+      <div class="header"><h1 class="heading"><a href="index.html">
+          <span>megapode 0.1 documentation</span></a></h1>
+        <h2 class="heading"><span>Data Handling</span></h2>
+      </div>
+      <div class="topnav">
+      
+        <p>
+        «&#160;&#160;<a href="template_rendering.html">Template Rendering</a>
+        &#160;&#160;::&#160;&#160;
+        <a class="uplink" href="index.html">Contents</a>
+        &#160;&#160;::&#160;&#160;
+        <a href="sessions.html">Sessions</a>&#160;&#160;»
+        </p>
+
+      </div>
+      <div class="content">
+        
+        
+  <div class="section" id="data-handling">
+<h1>Data Handling<a class="headerlink" href="#data-handling" title="Permalink to this headline">¶</a></h1>
+<p>Megapode uses DbUtils for it&#8217;s persistance handling. Each actor has it&#8217;s own connection,
+and they operate in isolation. Transaction handling is up to you. Remember what Stan Lee
+said...</p>
+<p>Unlike and ORM, you <em>will</em> need to define and build all your database tables.</p>
+<p>Like tasks and calculations, Data Accessors need custom interfaces to interact via their proxy.</p>
+<p>TODO: rename</p>
+<p>Once again, you need to annotate the Accessor class with PerstanceAccessor, implement IDataAccesor or extend PersistanceBase.</p>
+<p>You will need to define your methods and a matching interface. Remember that
+you should always return a future.</p>
+<p>The data accessor will be provided with the database connection.</p>
+<p>Example update and data extraction that maps to the data you want to extract</p>
+<div class="highlight-python"><div class="highlight"><pre>// First define a bean: Comment.java
+public class Comment {
+    Integer id;
+    String comment;
+
+    public Integer getId() {
+        return id;
+    }
+    public void setCommentId(Integer id) {
+        this.id = id;
+    }
+    public String getComment() {
+        return comment;
+    }
+    public void setComment(String comment) {
+        this.comment = comment;
+    }
+}
+
+// The interface
+public interface ICommentAccessor {
+    Future&lt;Integer&gt; insert(Comment comment);
+    Future&lt;List&lt;Comment&gt;&gt; getComments();
+}
+
+// The implementation
+
+@PersistanceAccessor
+public class CommentAccessor extends PersistanceBase implements
+    IDataAccessor, IUserProfileData {
+
+    public UserProfileData(Map&lt;Layers, ActorRef&gt; routers,
+        ActorRef coordinatingActor, UntypedActorContext actorContext,
+        Connection connection) {
+        super(routers, coordinatingActor, actorContext, connection);
+    }
+
+    @Override
+    public Future&lt;Integer&gt; insert(Comment comment){
+        //TODO: Implement
+    }
+
+    @Override
+    public Future&lt;List&lt;Comment&gt;&gt; getComments(){
+        QueryRunner run = new QueryRunner();
+        ResultSetHandler&lt;List&lt;User&gt;&gt; handler = new BeanListHandler(Comment.class);
+        try {
+            List&lt;Comment&gt; results = run.query(this.connection,
+                &quot;select * from comment, handler);
+            return Futures.successful(results);
+        } catch (SQLException e) {
+            return Futures.failed(e);
+        }
+    }
+}
+</pre></div>
+</div>
+<p>The callable then is implemented as such</p>
+<div class="highlight-python"><div class="highlight"><pre>ICommentAccessor commentAccess = DataAccessors.get(ICommentAccessor.class,     CommentAccessor.class, this);
+Future&lt;List&lt;Comment&gt;&gt; comments = commentAccess.getComments();
+</pre></div>
+</div>
+</div>
+
+
+      </div>
+      <div class="bottomnav">
+      
+        <p>
+        «&#160;&#160;<a href="template_rendering.html">Template Rendering</a>
+        &#160;&#160;::&#160;&#160;
+        <a class="uplink" href="index.html">Contents</a>
+        &#160;&#160;::&#160;&#160;
+        <a href="sessions.html">Sessions</a>&#160;&#160;»
+        </p>
+
+      </div>
+
+    <div class="footer">
+        &copy; Copyright 2014, Richard Noble.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.1.
+    </div>
+  </body>
+</html>

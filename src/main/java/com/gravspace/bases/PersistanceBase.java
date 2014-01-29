@@ -4,7 +4,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.sql.CallableStatement;
 import java.sql.Connection;
-import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -16,13 +15,12 @@ import java.util.Map;
 import akka.actor.ActorRef;
 import akka.actor.UntypedActorContext;
 
-import com.gravspace.abstractions.ConcurrantCallable;
-import com.gravspace.abstractions.IPersistanceAccessor;
+import com.gravspace.abstractions.IDataAccessor;
 import com.gravspace.util.Layers;
 import com.gravspace.util.TypeUtils;
 
 public abstract class PersistanceBase extends ConcurrantCallable implements
-		IPersistanceAccessor {
+		IDataAccessor {
 
 	protected Connection connection;
 

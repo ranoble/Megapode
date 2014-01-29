@@ -11,7 +11,6 @@ import akka.actor.ActorRef;
 import akka.actor.UntypedActorContext;
 
 import com.gravspace.abstractions.ICalculation;
-import com.gravspace.abstractions.ConcurrantCallable;
 import com.gravspace.util.Layers;
 import com.gravspace.util.TypeUtils;
 
