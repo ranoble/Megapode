@@ -2,7 +2,7 @@
 What is Megapode
 ================
 
-A friend of mine came back from a DJUGL meet up one day, with the question:
+A friend of mine [https://github.com/kura] came back from a DJUGL meet up one day, with the question:
 "Why, if we make use of techniques like map-reduce, queueing, actor based models, etc,
 for any data work, do we still write web application code in the same old sequential way?". 
 This sparked a discussion, and the concept of Megapode was born. 
@@ -28,7 +28,7 @@ Ideology
 
  - We are more interested in request/response time than in throughput.
  - You are not an idiot, therefore, the framework need not be idiot proof.
- - Nothing should block expect where it REALLY needs to block.
+ - Nothing should block except where it REALLY needs to block.
  - Add caching last.
  - Let something like nginx handle static files.
 
@@ -54,7 +54,7 @@ Controller
  - Widget: A self contained part of the page rendering. It can have other components nested
  within it.
 
-View 
+View
 ----
  - Renderer
  
