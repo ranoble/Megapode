@@ -1,9 +1,9 @@
-==================
-Template Rendering
-==================
+=================
+More on Templates
+=================
 
-Megapode uses Velocity for it's template rendering. Each actor has it's own rendering engine,
-and they operate in isolation. 
+As mentioned before, Megapode uses Velocity for it's template rendering. 
+Each actor has it's own rendering engine, and they operate in isolation. 
 
 Templates are placed in the classpath of the application. 
 

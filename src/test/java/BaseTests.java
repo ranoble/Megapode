@@ -35,10 +35,10 @@ import com.gravspace.proxy.Calculations;
 import com.gravspace.proxy.DataAccessors;
 import com.gravspace.proxy.Renderers;
 import com.gravspace.proxy.Widgets;
+import com.gravspace.testing.CallableContainer;
+import com.gravspace.testing.GetCallable;
+import com.gravspace.testing.TestCoordinator;
 
-import core.CallableContainer;
-import core.GetCallable;
-import core.TestCoordinator;
 
 public class BaseTests{
 

@@ -19,7 +19,7 @@ Simply add the following to your repositories section of your POM::
     <repository>
         <id>megapode-snapshots</id>
         <name>Megapode Snapshots</name>
-        <url>http://188.226.142.220:8081/nexus/content/repositories/megapode-snapshot/</url>
+        <url>http://megapode.info:8081/nexus/content/repositories/megapode-snapshot/</url>
     </repository>
 
 Next, add the dependancy in the dependancies section::

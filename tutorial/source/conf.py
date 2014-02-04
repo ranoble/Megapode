@@ -43,7 +43,7 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = u'megapode'
+project = u'Megapode'
 copyright = u'2014, Richard Noble'
 
 # The version info for the project you're documenting, acts as replacement for
@@ -196,7 +196,7 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-  ('index', 'megapode.tex', u'megapode Documentation',
+  ('index', 'megapode.tex', u'Megapode Documentation',
    u'Richard Noble', 'manual'),
 ]
 
@@ -226,7 +226,7 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    ('index', 'megapode', u'megapode Documentation',
+    ('index', 'megapode', u'Megapode Documentation',
      [u'Richard Noble'], 1)
 ]
 
@@ -240,8 +240,8 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-  ('index', 'megapode', u'megapode Documentation',
-   u'Richard Noble', 'megapode', 'One line description of project.',
+  ('index', 'megapode', u'Megapode Documentation',
+   u'Richard Noble', 'megapode', 'A truly concurrent Web Framework',
    'Miscellaneous'),
 ]
 

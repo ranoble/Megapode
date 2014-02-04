@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Create a basic Page &mdash; megapode 0.1 documentation</title>
+    <title>Create a basic Page &mdash; Megapode 0.1 documentation</title>
     
     <link rel="stylesheet" href="_static/haiku.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -23,13 +23,13 @@
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <link rel="top" title="megapode 0.1 documentation" href="index.html" />
+    <link rel="top" title="Megapode 0.1 documentation" href="index.html" />
     <link rel="next" title="Components, Blocking, Futures, and things you should know..." href="blocking_futures_things_you_should_know.html" />
     <link rel="prev" title="Setup" href="setup.html" /> 
   </head>
   <body>
       <div class="header"><h1 class="heading"><a href="index.html">
-          <span>megapode 0.1 documentation</span></a></h1>
+          <span>Megapode 0.1 documentation</span></a></h1>
         <h2 class="heading"><span>Create a basic Page</span></h2>
       </div>
       <div class="topnav">
@@ -118,8 +118,33 @@ public class HomePage extends PageBase {
 </div>
 </div>
 </div>
+<div class="section" id="add-a-template">
+<h2>3. Add a Template<a class="headerlink" href="#add-a-template" title="Permalink to this headline">¶</a></h2>
+<p>What use is a web framework, without a decent renderer. Megapode uses velocity
+to render templates. You can read more at <em class="xref std std-ref">template_rendering</em>. But to
+get us started we need to add a template, and add some code to the render method
+of the page.</p>
+<p>Create a template, call it something like home.html:</p>
+<div class="highlight-python"><div class="highlight"><pre>&lt;html&gt;
+   &lt;body&gt;
+      Hello $name, from Renderer!
+   &lt;/body&gt;
+&lt;/html&gt;
+</pre></div>
+</div>
+<p>Then add the following to the render method:</p>
+<div class="highlight-python"><div class="highlight"><pre>@Override
+public Future&lt;String&gt; render() throws Exception {
+   IRenderer renderer = Renderers.getDefault(this);
+   Map&lt;String, Object&gt; context = new HashMap&lt;String, Object&gt;();
+   context.put(&quot;name&quot;, &quot;Your Name&quot;);
+   return renderer.render(&quot;home.html&quot;, context);
+}
+</pre></div>
+</div>
+</div>
 <div class="section" id="check-your-page">
-<h2>3. Check your Page<a class="headerlink" href="#check-your-page" title="Permalink to this headline">¶</a></h2>
+<h2>4. Check your Page<a class="headerlink" href="#check-your-page" title="Permalink to this headline">¶</a></h2>
 <p>You now have a fully functional Megapode Page. Just start your server, and go to
 your path.</p>
 </div>

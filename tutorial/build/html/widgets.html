@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Widgets &mdash; megapode 0.1 documentation</title>
+    <title>Widgets &mdash; Megapode 0.1 documentation</title>
     
     <link rel="stylesheet" href="_static/haiku.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -23,13 +23,13 @@
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <link rel="top" title="megapode 0.1 documentation" href="index.html" />
+    <link rel="top" title="Megapode 0.1 documentation" href="index.html" />
     <link rel="next" title="Lets do some Work, Tasks and Calculations." href="lets_do_some_work_tasks_and_calculations.html" />
     <link rel="prev" title="Components, Blocking, Futures, and things you should know..." href="blocking_futures_things_you_should_know.html" /> 
   </head>
   <body>
       <div class="header"><h1 class="heading"><a href="index.html">
-          <span>megapode 0.1 documentation</span></a></h1>
+          <span>Megapode 0.1 documentation</span></a></h1>
         <h2 class="heading"><span>Widgets</span></h2>
       </div>
       <div class="topnav">
@@ -48,10 +48,22 @@
         
   <div class="section" id="widgets">
 <h1>Widgets<a class="headerlink" href="#widgets" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="basic-widgets">
+<h2>1. Basic Widgets<a class="headerlink" href="#basic-widgets" title="Permalink to this headline">¶</a></h2>
+<p>Generally a HTML page is made up of a number of self contained compontents.
+We call these Widgets in Megapode. Think of a e-commerce site. Widgets could
+be the Basket, the Navigation, each product view could be a widget and so on
+and so forth.</p>
+<p>So let&#8217;s add a few items to our new homepage. We will add a profile widget,
+and a comments widget, where a user can see what comments their friends
+have made.</p>
 <p>Widgets are parts of a page, that will be rendered. They can be a profile block,
-a comments feed, a comment in</p>
+a comments feed.</p>
+</div>
+<div class="section" id="widget-execution">
+<h2>2. Widget Execution<a class="headerlink" href="#widget-execution" title="Permalink to this headline">¶</a></h2>
 <p>Like Pages, Widgets make use of the coordinated blocking system, described in
-the Blocking and Components section.</p>
+the <em class="xref std std-ref">blocking_futures_things_you_should_know</em> section.</p>
 <p>They follow a set pattern of method calls:</p>
 <blockquote>
 <div><ul class="simple">
@@ -62,14 +74,230 @@ the Blocking and Components section.</p>
 <li>render</li>
 </ul>
 </div></blockquote>
+</div>
+<div class="section" id="widget-structure">
+<h2>3. Widget Structure<a class="headerlink" href="#widget-structure" title="Permalink to this headline">¶</a></h2>
+<p>A default Widget will then look something like this:</p>
+<div class="highlight-python"><div class="highlight"><pre>@Widget
+public class YourBasicWidget extends WidgetBase   {
+   public UserProfileWidget(Map&lt;Layers, ActorRef&gt; routers,
+         ActorRef coordinatingActor, UntypedActorContext actorContext) {
+      super(routers, coordinatingActor, actorContext);
+   }
+
+   @Override
+   public void initialise(Object... args) {
+      //these are the parameters that were passed into the build call.
+   }
+
+   @Override
+   public void collect() {
+      //collect the data you want
+   }
+
+   @Override
+   public void process() {
+      // process data
+   }
+
+   @Override
+   public Future&lt;String&gt; render() throws Exception {
+      IRenderer renderer = Renderers.getDefault(this);
+      Map&lt;String, Object&gt; context = new HashMap&lt;String, Object&gt;();
+      //add context data
+
+      return renderer.render(&quot;some.template.html&quot;, context);
+   }
+}
+</pre></div>
+</div>
+</div>
+<div class="section" id="calling-a-widget-from-another-widget-or-page">
+<h2>4. Calling a Widget from another Widget (or Page)<a class="headerlink" href="#calling-a-widget-from-another-widget-or-page" title="Permalink to this headline">¶</a></h2>
 <p>In the same way as pages, any calls to other components will finish
 before the next method is called. Unlike Pages, however, Widgets are can be called
 from another component, using the the Widgets proxy.</p>
 <p>Like other components, Widgets need to have the Widget annotation, and implement IWidget,
 or extend WidgetBase.</p>
 <p>There is only one method, the build method. This takes the arguments passed into the
-method, and (after the message passing), uses them to initialise the widget.</p>
-<p>It then follows the defined flow.</p>
+method, and (after the message passing), uses them to initialise the widget:</p>
+<div class="highlight-python"><div class="highlight"><pre>//TODO: example
+</pre></div>
+</div>
+</div>
+<div class="section" id="adding-to-our-project">
+<h2>5. Adding to our Project<a class="headerlink" href="#adding-to-our-project" title="Permalink to this headline">¶</a></h2>
+<p>It then follows the defined flow. We&#8217;ll need a couple of beans to hold our
+data. Lets add a Comment and a User:</p>
+<div class="highlight-python"><div class="highlight"><pre>public class Comment {
+   Integer id;
+   Integer userId;
+   String comment;
+   Date created;
+
+   public Integer getId() {
+      return id;
+   }
+   public void setCommentId(Integer id) {
+      this.id = id;
+   }
+   public Integer getUserId() {
+      return userId;
+   }
+   public void setUserId(Integer userId) {
+      this.userId = userId;
+   }
+   public String getComment() {
+      return comment;
+   }
+   public void setComment(String comment) {
+      this.comment = comment;
+   }
+   public Date getCreated() {
+      return created;
+   }
+   public void setCreated(Date created) {
+      this.created = created;
+   }
+}
+</pre></div>
+</div>
+<p>and</p>
+<div class="highlight-python"><div class="highlight"><pre>public class User {
+   Integer id;
+   String firstname;
+   String lastname;
+   String email;
+   String profileImage;
+
+   public Integer getId() {
+      return id;
+   }
+   public void setId(Integer id) {
+      this.id = id;
+   }
+   public String getFirstname() {
+      return firstname;
+   }
+   public void setFirstname(String firstname) {
+      this.firstname = firstname;
+   }
+   public String getLastname() {
+      return lastname;
+   }
+   public void setLastname(String lastname) {
+      this.lastname = lastname;
+   }
+   public String getEmail() {
+      return email;
+   }
+   public void setEmail(String email) {
+      this.email = email;
+   }
+   public String getProfileImage() {
+      return profileImage;
+   }
+   public void setProfileImage(String profileImage) {
+      this.profileImage = profileImage;
+   }
+}
+</pre></div>
+</div>
+<p>So for the Profile Widget, we can now use:</p>
+<div class="highlight-python"><div class="highlight"><pre>@Widget
+public class ProfileWidget extends WidgetBase   {
+   User user;
+
+   public UserProfileWidget(Map&lt;Layers, ActorRef&gt; routers,
+         ActorRef coordinatingActor, UntypedActorContext actorContext) {
+      super(routers, coordinatingActor, actorContext);
+   }
+
+   @Override
+   public void initialise(Object... args) {
+      user = new User();
+   }
+
+   @Override
+   public void collect() {
+      //collect the data you want
+   }
+
+   @Override
+   public void process() {
+      // process data
+   }
+
+   @Override
+   public Future&lt;String&gt; render() throws Exception {
+      IRenderer renderer = Renderers.getDefault(this);
+      Map&lt;String, Object&gt; context = new HashMap&lt;String, Object&gt;();
+      context.put(&quot;user&quot;, user);
+      return renderer.render(&quot;widget.profile.html&quot;, context);
+   }
+}
+</pre></div>
+</div>
+<p>Dont forget to add the profile template [widget.profile.html]</p>
+<div class="highlight-python"><div class="highlight"><pre>&lt;div&gt;
+    &lt;img src=&quot;$user.profileImage&quot; /&gt;
+    &lt;ul&gt;
+    &lt;li&gt;$user.firstname $user.lastname&lt;/li&gt;
+    &lt;li&gt;&lt;a href=&quot;mailto: $user.email&quot;&gt;email&lt;/a&gt;&lt;/li&gt;
+    &lt;/ul&gt;
+&lt;/div&gt;
+</pre></div>
+</div>
+<p>Next, we can add a Comments Widget:</p>
+<div class="highlight-python"><div class="highlight"><pre>@Widget
+public class ProfileWidget extends WidgetBase   {
+   List&lt;Comment&gt; comments;
+
+   public UserProfileWidget(Map&lt;Layers, ActorRef&gt; routers,
+         ActorRef coordinatingActor, UntypedActorContext actorContext) {
+      super(routers, coordinatingActor, actorContext);
+   }
+
+   @Override
+   public void initialise(Object... args) {
+      comments = new ArrayList&lt;Comment&gt;();
+      //these are the parameters that were passed into the build call.
+   }
+
+   @Override
+   public void collect() {
+      for (int i = 0; i &lt; 3; i++){
+         Comment comment = new Comment();
+         comment.setComment(String.format(&quot;Comment %d&quot;, (i+1)));
+         comment.setCreated(new Date());
+         comments.add(comment);
+      }
+   }
+
+   @Override
+   public void process() {
+      // process data
+   }
+
+   @Override
+   public Future&lt;String&gt; render() throws Exception {
+      IRenderer renderer = Renderers.getDefault(this);
+      Map&lt;String, Object&gt; context = new HashMap&lt;String, Object&gt;();
+      context.put(&quot;comments&quot;, comments);
+      return renderer.render(&quot;widget.comments.html&quot;, context);
+   }
+}
+</pre></div>
+</div>
+<p>and the comments template:</p>
+<div class="highlight-python"><div class="highlight"><pre>#foreach( $comment in $comments )
+&lt;li&gt;
+    $comment.getComment()
+&lt;/li&gt;
+#end
+</pre></div>
+</div>
+</div>
 </div>
 
 

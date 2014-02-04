@@ -76,9 +76,38 @@ So change your class to look something like this ::
             return Futures.success("<html><body>Hello World!</body></html>")
         } 
     } 
-  
-3. Check your Page
+
+3. Add a Template
+-----------------
+
+What use is a web framework, without a decent renderer. Megapode uses velocity 
+to render templates. You can read more at :ref:`template_rendering`. But to 
+get us started we need to add a template, and add some code to the render method 
+of the page. 
+
+Create a template, call it something like home.html::
+
+   <html>
+      <body>
+         Hello $name, from Renderer!
+      </body>
+   </html>
+   
+Then add the following to the render method:: 
+
+   @Override
+   public Future<String> render() throws Exception {
+      IRenderer renderer = Renderers.getDefault(this);
+      Map<String, Object> context = new HashMap<String, Object>();
+      context.put("name", "Your Name");
+      return renderer.render("home.html", context); 
+   } 
+
+ 
+4. Check your Page
 ------------------
 
 You now have a fully functional Megapode Page. Just start your server, and go to 
 your path. 
+
+
