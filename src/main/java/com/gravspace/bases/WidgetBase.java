@@ -41,7 +41,7 @@ public abstract class WidgetBase extends ConcurrantCallable implements IWidget{
 	public void set(final String field, Future<?> source, final SetterFailure onFailure){
 		final Promise<Object> wait = delayUntilComplete();
 		set(field, source, wait, onFailure);
-		setIfAlreadyComplete(field, source, wait);
+		setIfAlreadyComplete(field, source, wait, onFailure);
 	}
 	
 	@SuppressWarnings("unchecked")
@@ -53,11 +53,11 @@ public abstract class WidgetBase extends ConcurrantCallable implements IWidget{
 	public void add(final String field, Future<?> source, final SetterFailure onFailure){
 		final Promise<Object> wait = delayUntilComplete();
 		add(field, source, wait, onFailure);
-		addIfAlreadyComplete(field, source, wait);
+		addIfAlreadyComplete(field, source, wait, onFailure);
 	}
 
 	private void setIfAlreadyComplete(final String field, Future<?> source,
-			final Promise<Object> wait) {
+			final Promise<Object> wait, SetterFailure onFailure) {
 		if (source.isCompleted() && !wait.isCompleted()){
 			Object returnValue;
 			try {
@@ -67,9 +67,8 @@ public abstract class WidgetBase extends ConcurrantCallable implements IWidget{
 				} else {
 					BeanUtils.setProperty(getThis(), field, returnValue);
 				}
-			} catch (Exception e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+			} catch (Exception exception) {
+				handleCallbackException(field, onFailure, exception, wait);
 			}
 			try {
 				wait.success(null);
@@ -77,25 +76,23 @@ public abstract class WidgetBase extends ConcurrantCallable implements IWidget{
 		}
 	}
 	private void addIfAlreadyComplete(final String field, Future<?> source,
-			final Promise<Object> wait) {
+			final Promise<Object> wait, SetterFailure onFailure) {
 		if (source.isCompleted() && !wait.isCompleted()){
 			Object returnValue;
 			try {
-				
 				returnValue = Await.result(source, Duration.create(0, TimeUnit.SECONDS));
 				if (!(returnValue instanceof Null)){
 					((List)PropertyUtils.getProperty(getThis(), field)).add(returnValue);
 				}
-			} catch (Exception e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+			} catch (Exception exception) {
+				handleCallbackException(field, onFailure, exception, wait);
 			}
 			
-			wait.success(null);
+			try {
+				wait.success(null);
+			} catch (IllegalStateException e){}
 		}
 	}
-	
-	
 	
 	public WidgetBase getThis(){
 		return this;
@@ -121,23 +118,23 @@ public abstract class WidgetBase extends ConcurrantCallable implements IWidget{
 							((List)PropertyUtils.getProperty(getThis(), field)).add(returnValue);
 						}
 					} catch (IllegalAccessException | InvocationTargetException e){
-						getLogger().error(exception, "Adder Exception");
+						getLogger().error(exception, 
+								String.format("Exception in add callback on widget / page [%s] field [%s]", 
+										getThis().getClass().getCanonicalName(), field));
 						exception = e;
 					}
 				} 
 				if (exception != null){
-					handleCallbackException(field, onFailure, exception);
+					handleCallbackException(field, onFailure, exception, waiter);
+				} else {
+					waiter.success(null);
 				}
-					
-				waiter.success(null);
 			}	
 		}, this.getActorContext().dispatcher());
 	}
 	
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public void set(final String field, Future<?> source, final Promise<Object> waiter, final SetterFailure onFailure){
-//		getLogger().info("Registering setter on field "+field);
-
 		source.onComplete(new OnComplete(){
 			@Override
 			public void onComplete(Throwable exception, Object returnValue)
@@ -151,15 +148,19 @@ public abstract class WidgetBase extends ConcurrantCallable implements IWidget{
 							BeanUtils.setProperty(getThis(), field, returnValue);
 						}
 					} catch (IllegalAccessException | InvocationTargetException e){
-						getLogger().error(exception, "Setter Exception");
+						getLogger().error(exception, 
+								String.format("Exception in set callback on widget / page [%s] field [%s]", 
+										getThis().getClass().getCanonicalName(), field));
 						exception = e;
 					}
 				}
 				if (exception != null){
-					handleCallbackException(field, onFailure, exception);
+					handleCallbackException(field, onFailure, exception, waiter);
+				} else {
+					waiter.success(null);
 				}
 				
-				waiter.success(null);
+				
 			}
 
 			
@@ -167,12 +168,23 @@ public abstract class WidgetBase extends ConcurrantCallable implements IWidget{
 	}
 	
 	private void handleCallbackException(final String field,
-			final SetterFailure onFailure, Throwable exception) {
+			final SetterFailure onFailure, Throwable exception, Promise<Object> promise) {
 		if (onFailure != null) {
-			onFailure.handleFailure(getThis(), field, exception);
+			onFailure.handleFailure(getThis(), field, exception, promise);
 		} else {
-			getLogger().error(exception, "Failed without failure handler");
+			getLogger().error(exception, "Failed without failure handler, falling back.");
+		}
+		if (!promise.isCompleted()){
+			promise.failure(exception);
 		}
 	}	
+	
+	public abstract void collect();
+	
+	public abstract void process();
+	
+	public abstract Future<String> render() throws Exception;
+
+	public abstract void initialise(Object... args);
 	
 }

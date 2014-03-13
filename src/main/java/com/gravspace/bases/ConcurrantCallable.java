@@ -109,19 +109,29 @@ public class ConcurrantCallable {
 	}
 
 	protected void monitorForCompletion(final Future<Object> future) {
-		//this should be for oncompletes
 		future.onComplete(new OnComplete<Object>() {
 			@Override
-			public void onComplete(Throwable arg0, Object response)
+			public void onComplete(Throwable exception, Object response)
 					throws Throwable {
-//				getLogger().info("Task Complete, Monitor");
-				taskList.remove(future);
-//				getLogger().info("Task removed => "+taskList.size());
-				notifyWaiters(future);
+				if (exception != null){
+					notifyWaitersOfFailure(exception);
+				} else {
+					taskList.remove(future);
+					notifyWaiters(future);
+				}
 			}
+
+			
 		}, getActorContext().dispatcher());
 	}
-	
+	protected void notifyWaitersOfFailure(Throwable exception) {
+		for (Promise<Object> waiter: awaitListeners){
+			if (!waiter.isCompleted()){
+				waiter.failure(exception);
+			}
+		}
+		taskList.clear();
+	}
 	protected void notifyWaiters(Future<Object> future) {
 		if (taskList.isEmpty()){
 			for (Promise<Object> waiter: awaitListeners){

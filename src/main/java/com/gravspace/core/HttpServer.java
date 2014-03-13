@@ -199,7 +199,8 @@ public class HttpServer {
 				System.out.println(((new Date()).getTime() - now.getTime())
 						+ " ms");
 			} catch (Exception e) {
-				System.out.println("Got here");
+				e.printStackTrace();
+//				System.out.println("Got here");
 				response.setStatusCode(HttpStatus.SC_METHOD_FAILURE);
 				HttpEntity body = new StringEntity(e.getMessage(),
 						ContentType.create("text/plain", Consts.UTF_8));

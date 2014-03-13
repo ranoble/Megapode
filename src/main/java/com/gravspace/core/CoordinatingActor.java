@@ -30,7 +30,7 @@ import com.gravspace.abstractions.IDataAccessor;
 import com.gravspace.abstractions.IRenderer;
 import com.gravspace.abstractions.ITask;
 import com.gravspace.handlers.CalculationHandler;
-import com.gravspace.handlers.ComponentHandler;
+import com.gravspace.handlers.WidgetHandler;
 import com.gravspace.handlers.PageHandler;
 import com.gravspace.handlers.PersistanceHandler;
 import com.gravspace.handlers.RendererHandler;
@@ -208,7 +208,7 @@ public class CoordinatingActor extends UntypedActor {
 			routers.put(widget.getCanonicalName(), widget);
 		}
 		for (int i = 0; i < actors; i++){
-			widgetActors.add(this.getContext().actorOf(Props.create(ComponentHandler.class, routerMap, routers), "WidgetHandler-"+i));
+			widgetActors.add(this.getContext().actorOf(Props.create(WidgetHandler.class, routerMap, routers), "WidgetHandler-"+i));
 		}
 		return this.getContext().actorOf(
 				  Props.empty().withRouter(SmallestMailboxRouter.create(widgetActors)));
@@ -219,9 +219,7 @@ public class CoordinatingActor extends UntypedActor {
 		List<ActorRef> renderers = new ArrayList<ActorRef>();
 		
 		Map<String, Class<? extends IRenderer>> routers  = new HashMap<String, Class<? extends IRenderer>>();
-				//
-//		routers.put("hi_pode.vm", ProfileRenderer.class);
-		
+
 		List<Class<? extends IRenderer>> renders = AnnotationParser.getAnnotatedRenderers(renderPackages);
 		for (Class<? extends IRenderer> renderer: renders){
 			log.info(String.format("Registering renderer: [%s]", renderer.getCanonicalName()));

@@ -33,24 +33,25 @@ public class Session extends UntypedActor {
 	}
 	
 	@Override
-	public void onReceive(Object arg0) throws Exception {
-		if (arg0 instanceof KeepAlive){
+	public void onReceive(Object message) throws Exception {
+		log.info("Session got: "+message.getClass().getCanonicalName());
+		if (message instanceof KeepAlive){
 			keepalive();
-		} else if (arg0 instanceof GetSessionVar){
-			GetSessionVar getter = (GetSessionVar)arg0;
+		} else if (message instanceof GetSessionVar){
+			GetSessionVar getter = (GetSessionVar)message;
 			Object value = sessionVars.get(getter.getName());
 			if (value == null){
 				value = Null.getNull();
 			}
 			this.getSender().tell(value, self());
-		} else if (arg0 instanceof SetSessionVar){
-			SetSessionVar setter = (SetSessionVar)arg0;
+		} else if (message instanceof SetSessionVar){
+			SetSessionVar setter = (SetSessionVar)message;
 			sessionVars.put(setter.getName(), setter.getValue());
 			log.info(String.format("SETTING [%s: %s]", setter.getName(), 
 					setter.getValue().toString()));
 			this.getSender().tell(Boolean.TRUE, self());
 		} else {
-			unhandled(arg0);
+			unhandled(message);
 		}
 		
 	}

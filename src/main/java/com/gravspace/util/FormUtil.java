@@ -30,29 +30,11 @@ public class FormUtil {
 				} else {
 					Class<?> type = descriptor.getPropertyType();
 					if (List.class.isAssignableFrom(type)){
-						List obj = (List)PropertyUtils.getProperty(bean, element.getName());
-						if (obj == null){
-							obj = new ArrayList();
-						}
-						Class<?> clazz = getListGenericType(descriptor);
-						obj.add(ConvertUtils.convert(element.getValue(), clazz));
-								
-						PropertyUtils.setProperty(bean,
-								element.getName(), 
-								obj);
+						addElementToList(bean, element, descriptor);
 						continue;
 					}
 					if (Set.class.isAssignableFrom(type)){
-						Set obj = (Set)PropertyUtils.getProperty(bean, element.getName());
-						if (obj == null){
-							obj = new HashSet();
-						}
-						Class<?> clazz = getListGenericType(descriptor);
-						obj.add(ConvertUtils.convert(element.getValue(), clazz));
-						
-						PropertyUtils.setProperty(bean,
-								element.getName(), 
-								obj);
+						addElementToSet(bean, element, descriptor);
 						continue;
 					}
 					BeanUtils.setProperty(bean,
@@ -61,11 +43,42 @@ public class FormUtil {
 				}
 			} catch (IllegalAccessException | InvocationTargetException
 					| NoSuchMethodException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		}
 		return bean;
+	}
+
+	@SuppressWarnings({ "rawtypes", "unchecked" })
+	private static <T> void addElementToList(T bean, NameValuePair element,
+			PropertyDescriptor descriptor) throws IllegalAccessException,
+			InvocationTargetException, NoSuchMethodException {
+		List obj = (List)PropertyUtils.getProperty(bean, element.getName());
+		if (obj == null){
+			obj = new ArrayList();
+		}
+		Class<?> clazz = getListGenericType(descriptor);
+		obj.add(ConvertUtils.convert(element.getValue(), clazz));
+				
+		PropertyUtils.setProperty(bean,
+				element.getName(), 
+				obj);
+	}
+
+	@SuppressWarnings({ "rawtypes", "unchecked" })
+	private static <T> void addElementToSet(T bean, NameValuePair element,
+			PropertyDescriptor descriptor) throws IllegalAccessException,
+			InvocationTargetException, NoSuchMethodException {
+		Set obj = (Set)PropertyUtils.getProperty(bean, element.getName());
+		if (obj == null){
+			obj = new HashSet();
+		}
+		Class<?> clazz = getListGenericType(descriptor);
+		obj.add(ConvertUtils.convert(element.getValue(), clazz));
+		
+		PropertyUtils.setProperty(bean,
+				element.getName(), 
+				obj);
 	}
 
 	private static Class<?> getListGenericType(PropertyDescriptor descriptor) {

@@ -1,5 +1,6 @@
 package com.gravspace.messages;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.http.Header;
@@ -10,7 +11,7 @@ public class ResponseMessage {
 	byte[] responseContent;
 	String contentType;
 	List<Header> headers;
-	//List<Header> cookies;
+	
 	public int getStatus() {
 		return status;
 	}
@@ -30,6 +31,7 @@ public class ResponseMessage {
 		this.contentType = contentType;
 	}
 	public List<Header> getHeaders() {
+		if (headers == null) headers = new ArrayList<Header>();
 		return headers;
 	}
 	public void setHeaders(List<Header> headers) {

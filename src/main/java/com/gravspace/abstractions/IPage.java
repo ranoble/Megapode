@@ -16,6 +16,6 @@ public interface IPage extends IWidget{
             byte[] content,
             Map<String, String> params);
 
-	public Future<ResponseMessage> build() throws Exception;
+	public Future<ResponseMessage> build() throws Throwable;
 	
 }

@@ -9,6 +9,7 @@ import java.util.UUID;
 import org.apache.http.Header;
 import org.apache.http.HttpStatus;
 import org.apache.http.NameValuePair;
+import org.apache.http.entity.ContentType;
 import org.apache.http.message.BasicHeader;
 
 import scala.concurrent.Await;
@@ -28,6 +29,7 @@ import com.gravspace.calculation.form.CookieParser;
 import com.gravspace.calculation.form.FormParser;
 import com.gravspace.calculation.form.ICookieParser;
 import com.gravspace.calculation.form.IFormParser;
+import com.gravspace.exceptions.Redirect;
 import com.gravspace.messages.GetSession;
 import com.gravspace.messages.ResponseMessage;
 import com.gravspace.proxy.Calculations;
@@ -38,6 +40,7 @@ import com.gravspace.util.Layers;
 
 
 public abstract class PageBase  extends WidgetBase implements IPage {
+	private static final String MEGAPODE_SESSION_ID_KEY = "MegapodeSessionId";
 	protected Map<String, String> params;
 	protected String method;
 	protected String path;
@@ -84,15 +87,13 @@ public abstract class PageBase  extends WidgetBase implements IPage {
 			@Override
 			public void onComplete(Throwable exception, Map<String, String> cookies)
 					throws Throwable {
-				// TODO Auto-generated method stub
 				if (exception != null){
 					delay.failure(exception);
-					
 				} else {
-					String sessionId = cookies.get("MegapodeSessionId");
+					String sessionId = cookies.get(MEGAPODE_SESSION_ID_KEY);
 					if (sessionId == null){
 						sessionId = UUID.randomUUID().toString();
-						addCookie(new Cookie("MegapodeSessionId", sessionId));
+						addCookie(new Cookie(MEGAPODE_SESSION_ID_KEY, sessionId));
 					}
 					Timeout timeout = new Timeout(Duration.create(1, "minute"));
 					Future<Object> sessionActor = Patterns.ask(routers.get(Layers.SESSION), 
@@ -138,37 +139,41 @@ public abstract class PageBase  extends WidgetBase implements IPage {
 	}
 	
 	public void collect(){
+		System.out.println("Got ");
 	}
+	
+	public abstract void process();
+	
+	public abstract Future<String> render() throws Exception;
 	
 	public Future<ResponseMessage> build() throws Exception {
 		final Promise<ResponseMessage> pageRendered = Futures.promise();
 		final ResponseMessage response = new ResponseMessage();
-		
-		Await.ready(await(), Duration.create(1, "minute"));
-		collect();
-		Await.ready(await(), Duration.create(1, "minute"));
-		process();
-		Await.ready(await(), Duration.create(1, "minute"));
-		Future<String> rendered = render();
-		response.setContentType(contentType);
-		List<Header> headers = getCookiesAndHeaders();
-		response.setHeaders(headers);
-		rendered.onComplete(new OnComplete<String>(){
-
-			@Override
-			public void onComplete(Throwable e, String result)
-					throws Throwable {
-				if (e == null){
-					response.setStatus(HttpStatus.SC_OK);
-					response.setResponseContent(
-							result.getBytes(Charset.forName("UTF-8")));
-					pageRendered.success(response);
-				} else {
-					pageRendered.failure(e);
-				}
-			}
-			
-		}, this.actorContext.dispatcher());
+		try {
+			Await.result(await(), Duration.create(1, "minute"));
+			collect();
+			Await.result(await(), Duration.create(1, "minute"));
+			process();
+			Await.result(await(), Duration.create(1, "minute"));
+			Future<String> rendered = render();
+			response.setContentType(contentType);
+			List<Header> headers = getCookiesAndHeaders();
+			response.setHeaders(headers);
+			String result = (String) Await.result(rendered, Duration.create(1, "minute"));
+			response.setStatus(HttpStatus.SC_OK);
+			response.setResponseContent(
+					result.getBytes(Charset.forName("UTF-8")));
+			pageRendered.success(response);
+		} catch (Redirect redirect){
+			response.setStatus(redirect.getCode());
+			response.setContentType(ContentType.TEXT_HTML.getMimeType());
+			response.getHeaders().add(new BasicHeader("Location", redirect.getUri().toString()));
+			response.setResponseContent(
+					"redirected".getBytes(Charset.forName("UTF-8")));
+			pageRendered.success(response);
+		} catch (Exception e){
+			pageRendered.failure(e);
+		}
 		return pageRendered.future();
 	}
 

@@ -42,22 +42,7 @@ public class PageHandler extends UntypedActor {
 		this.routers = routers;
 	}
 	
-//	public IPage loadPage(String uri, String method, String query, HttpResponse response, HttpContext context) throws PageNotFoundException, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
-//		Map<String, String> parameters = new HashMap<String, String>();
-//		for (PageRoute route: pages){
-//			if (route.getTemplate().match(uri, parameters)){
-//				IPage page = route.getPageClass().getConstructor(Map.class, ActorRef.class, UntypedActorContext.class).newInstance(routers, getSender(), this.context());
-//				page.initialise(request, 
-//						response, 
-//						context,
-//						parameters
-//						);
-//				return page;
-//			}
-//		}
-//		
-//		throw new PageNotFoundException(String.format("Page matching [%s] not found", uri));
-//	}
+
 
 	@Override
 	public void onReceive(Object rawMessage) throws Exception {
@@ -73,13 +58,17 @@ public class PageHandler extends UntypedActor {
 			if (split.length > 1){
 				query = split[1];
 			}
-//			 message.getPayload().getRequestLine().get
+
 			Future<ResponseMessage> rendered = null;
 			try {
 				IPage page = loadPage(path, message.getPayload().getRequestLine().getMethod().toUpperCase(), query, message.getPayload().getHeaders(), message.getPayload().getContent());
 				rendered = page.build();
-			} catch (PageNotFoundException | InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException | SecurityException e){
+			} catch (PageNotFoundException pnf){
+				rendered = Futures.failed(pnf);
+			} catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException | SecurityException e){
 				log.error(String.format("Error in handelling [%s]", e.getClass().getCanonicalName()), e);
+				rendered = Futures.failed(e);
+			} catch (Throwable e) {
 				rendered = Futures.failed(e);
 			}
 			akka.pattern.Patterns.pipe(rendered, this.getContext().dispatcher()).to(getSender());
